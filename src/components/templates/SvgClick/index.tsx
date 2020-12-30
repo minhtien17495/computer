@@ -10,7 +10,7 @@ const SvgClick: React.FC = () => {
     return (
         <div className="relative">
             <div className="svg_wrap">
-                <svg viewBox="0 0 1220 560" fill="none">
+                <svg data-flat="1" className="svg" viewBox="0 0 1220 560" fill="none">
                     <rect data-match="item0" className="svg_img svg_click_end" y="296.115" width="525.755" height="263.885" fill="url(#pattern0)" />
                     <rect data-match="item1" className="svg_img svg_click" x="57.2603" y="257.922" width="367.389" height="149.205" fill="url(#pattern1)" />
                     <rect data-match="item2" className="svg_img svg_click" x="57.2603" y="199.439" width="367.389" height="161.201" fill="url(#pattern2)" />
@@ -29,16 +29,16 @@ const SvgClick: React.FC = () => {
                         <circle data-match="item35" className="circle" opacity="0.5" cx="413" cy="126" r="12" fill="#00944D" />
                         <rect className="svg_line" data-match="item35" opacity="0.5" x="425" y="231" width="678" height="1" fill="#00944D" />
                         <circle data-match="item35" className="circle" opacity="0.5" cx="413" cy="232" r="12" fill="#00944D" />
-                        <text className="svg_text"  x="1127" y="120.4" style={{ fill: '#5A5A5A', lineHeight: '30px', fontSize: '20px' }}>Tack Coat
+                        <text className="svg_text" x="1127" y="120.4" style={{ fill: '#5A5A5A', lineHeight: '30px', fontSize: '20px' }}>Tack Coat
                         </text>
-                        <text className="svg_text"  x="1126.07" y="226.4" style={{ fill: '#5A5A5A', lineHeight: '30px', fontSize: '20px' }}>Tack Coat
+                        <text className="svg_text" x="1126.07" y="226.4" style={{ fill: '#5A5A5A', lineHeight: '30px', fontSize: '20px' }}>Tack Coat
                         </text>
 
                     </g>
                     <g className="svg_group" data-match="item4">
                         <rect className="svg_line" data-match="item4" opacity="0.5" x="425" y="178" width="561" height="1" fill="#00944D" />
                         <circle data-match="item4" className="circle" opacity="0.5" cx="413" cy="179" r="12" fill="#00944D" />
-                        <text className="svg_text"  x="1004.19" y="171.8" style={{ fill: '#5A5A5A', lineHeight: '30px', fontSize: '20px' }}>Asphalt Binder course
+                        <text className="svg_text" x="1004.19" y="171.8" style={{ fill: '#5A5A5A', lineHeight: '30px', fontSize: '20px' }}>Asphalt Binder course
                         </text>
                     </g>
                     <g className="svg_group" data-match="item2">
@@ -53,7 +53,6 @@ const SvgClick: React.FC = () => {
                         <text className="svg_text" x="1104.38" y="345" style={{ fill: '#5A5A5A', lineHeight: '30px', fontSize: '20px' }}>Prime Coat
                         </text>
                     </g>
-
                     <defs>
                         <pattern id="pattern0" patternContentUnits="objectBoundingBox" width="1" height="1">
                             <use href="#image0" transform="translate(0 -0.00168014) scale(0.000720461 0.00143542)" />
@@ -85,6 +84,76 @@ const SvgClick: React.FC = () => {
                         <image id="image6" width="975" height="362" href={image6} />
                     </defs>
                 </svg>
+            </div>
+            <div className="list_card displayNone">
+                <div className="listCard_item">
+                    <div className="card_item">
+                        <div className="card_item_img">
+                            <img src="https://www.phucanh.vn/media/news/1811_AsusROGGT51-3.jpg" alt="ieie" />
+                        </div>
+                        <div className="card_item_content">
+                            <div className="card_item_title">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sequi, velit.
+                                        </div>
+                            <div className="card_itm_des">
+                                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Reiciendis voluptatibus tempora, in dicta officia obcaecati quam adipisci? Perferendis culpa dignissimos, quia similique reprehenderit repellat aut.
+                                        </div>
+                        </div>
+                    </div>
+                    <div className="card_item ">
+                        <div className="card_item_img">
+                            <img src="https://www.phucanh.vn/media/news/1811_AsusROGGT51-3.jpg" alt="ieie" />
+                        </div>
+                        <div className="card_item_content">
+                            <div className="card_item_title">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sequi, velit.
+                                        </div>
+                            <div className="card_itm_des">
+                                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Reiciendis voluptatibus tempora, in dicta officia obcaecati quam adipisci? Perferendis culpa dignissimos, quia similique reprehenderit repellat aut.
+                                        </div>
+                        </div>
+                    </div>
+                    <div className="card_item">
+                        <div className="card_item_img">
+                            <img src="https://www.phucanh.vn/media/news/1811_AsusROGGT51-3.jpg" alt="ieie" />
+                        </div>
+                        <div className="card_item_content">
+                            <div className="card_item_title">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sequi, velit.
+                                        </div>
+                            <div className="card_itm_des">
+                                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Reiciendis voluptatibus tempora, in dicta officia obcaecati quam adipisci? Perferendis culpa dignissimos, quia similique reprehenderit repellat aut.
+                                        </div>
+                        </div>
+                    </div>
+                    <div className="card_item">
+                        <div className="card_item_img">
+                            <img src="https://www.phucanh.vn/media/news/1811_AsusROGGT51-3.jpg" alt="ieie" />
+                        </div>
+                        <div className="card_item_content">
+                            <div className="card_item_title">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sequi, velit.
+                                        </div>
+                            <div className="card_itm_des">
+                                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Reiciendis voluptatibus tempora, in dicta officia obcaecati quam adipisci? Perferendis culpa dignissimos, quia similique reprehenderit repellat aut.
+                                        </div>
+                        </div>
+                    </div>
+                    <div className="card_item">
+                        <div className="card_item_img">
+                            <img src="https://www.phucanh.vn/media/news/1811_AsusROGGT51-3.jpg" alt="ieie" />
+                        </div>
+                        <div className="card_item_content">
+                            <div className="card_item_title">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sequi, velit.
+                                        </div>
+                            <div className="card_itm_des">
+                                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Reiciendis voluptatibus tempora, in dicta officia obcaecati quam adipisci? Perferendis culpa dignissimos, quia similique reprehenderit repellat aut.
+                                        </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     )

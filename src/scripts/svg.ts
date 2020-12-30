@@ -1,5 +1,6 @@
 import $ from 'jquery';
 $(() => {
+    const $listCard=$('.list_card');
     const $text=$('.svg_text');
     const $svgImg = $('.svg_img');
     // const $circle=$('.circle');
@@ -7,6 +8,7 @@ $(() => {
     const $svgGroup = $('.svg_group');
     const $svgClick=$('.svg_click');
     $svgClick.click(function () {
+        $listCard.removeClass('displayNone');
         $line.addClass('width160');
         $svgImg.addClass('opacity');
         $text.hide();
@@ -38,6 +40,49 @@ $(() => {
         $text.show();
         $svgImg.removeClass('opacity');
         $line.removeClass('width160');
-        $svgGroup.removeClass('displayNone')
+        $svgGroup.removeClass('displayNone');
+        if (!$listCard.hasClass('displayNone')) {
+            $listCard.addClass('displayNone');
+        }
     })
+    // const resizeFunction=()=>{
+    //     if (window.innerWidth < 991 && $text.length > 0 && $line.length > 0) {
+    //         if ($('.svg').data('flat')==='1') {
+    //             $('.svg').data('flat','2');
+    //             $('.svg').attr('viewBox','0 0 1020 560');
+    //             $text.each(function(){
+    //                 const xText=$text.attr('x');
+    //                 if (xText) {
+    //                     $(this).attr("x",parseInt(xText)-200);
+    //                 }
+    //             })
+    //             $line.each(function(){
+    //                 const widthLine=$line.attr('width');
+    //                 if (widthLine) {
+    //                     $(this).attr("width",parseInt(widthLine)-200);
+    //                 }
+    //             }) 
+    //         }
+    //         if ($('.svg').data('flat')==='2') {
+    //             $('.svg').data('flat','1');
+    //             $('.svg').attr('viewBox','0 0 1220 560');
+    //             $text.each(function(){
+    //                 const xText=$text.attr('x');
+    //                 if (xText) {
+    //                     $(this).attr("x",parseInt(xText)+200);
+    //                 }
+    //             })
+    //             $line.each(function(){
+    //                 const widthLine=$line.attr('width');
+    //                 if (widthLine) {
+    //                     $(this).attr("width",parseInt(widthLine)+200);
+    //                 }
+    //             }) 
+    //         }
+    //     }
+    // }
+    // resizeFunction();
+    // $(window).on('resize',()=>{
+    //     resizeFunction();
+    // })
 });

@@ -15,9 +15,22 @@ const Home: React.FC = () => (
         </Container>
             <br/>
             <br/>
+            <Container>
             <div style={{width:'100%'}}>
             <SvgClick/>
             </div>
+            </Container>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            
     </div>
 )
 export default Home;

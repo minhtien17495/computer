@@ -1,4 +1,5 @@
 .relative {
+    position: relative;
     width: 100%;
     max-width: 1366px;
     padding: 0 20px;
@@ -22,4 +23,40 @@
 }
 .width160 {
     width: 160px;
+}
+.list_card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-left: 46%;
+    @include tablet-down {
+        position: relative;
+        margin: 0 auto;
+        margin-top: rem(20);
+    }
+}
+.listCard_item {
+    width: 100%;
+    max-height: rem(560);
+    overflow: auto;
+}
+.card_item {
+    margin-top: rem(10);
+    background-color: lightblue;
+    display: flex;
+    flex-wrap: wrap;
+    &_img {
+        width: 20%;
+        img {
+            width: 100%;
+        }
+    }
+    &_content {
+        width: 80%;
+        padding-left: 10px;
+    }
+    &_title {
+        font-weight: bold;
+        margin-bottom: rem(5);
+    }
 }
