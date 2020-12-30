@@ -1,0 +1,19 @@
+.a-text {
+    color: black;
+    margin-bottom: 0;
+    font-weight: normal;
+    @include fontBase(16, 24);
+    &-paragraph {
+        @include fontBase(14, 20);
+    }
+    &-label-l1 {
+        @include fontBase(14, 20);
+        @include mobile-down {
+            @include fontBase(12, 16);
+        }
+    }
+    &-label-l2 {
+        @include fontBase(12, 16);
+        letter-spacing: 0.0015rem;
+    }
+}

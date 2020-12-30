@@ -1,0 +1,25 @@
+.relative {
+    width: 100%;
+    max-width: 1366px;
+    padding: 0 20px;
+    margin: 0 auto;
+}
+.svg_wrap {
+    height: 0;
+    padding-bottom: (560 / 1207) * 100%;
+}
+.svg_img {
+    cursor: pointer;
+}
+.opacity {
+    opacity: 0.5;
+}
+.displayNone {
+    display: none;
+}
+.displayInherit {
+    display: inherit;
+}
+.width160 {
+    width: 160px;
+}

@@ -1,0 +1,17 @@
+@import './assets/scss/fonts.scss';
+@import './assets/scss/colors.scss';
+@import './assets/scss/variables.scss';
+@import './assets/scss/breakpoints.scss';
+@import './assets/scss/functions.scss';
+@import './assets/scss/mixin.scss';
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: $white;
+    font-family: $font-lato;
+}

@@ -1,0 +1,60 @@
+@mixin aspectRatio($width: 1, $height: 1) {
+    position: relative;
+    &:before {
+        display: block;
+        padding-bottom: ($height / $width) * 100%;
+        content: '';
+    }
+}
+
+@mixin text-overflow($number: 2) {
+    display: -webkit-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: ($number);
+}
+
+@mixin fontBase($fs: 1, $lh: 1) {
+    font-size: rem($fs);
+    line-height: rem($lh);
+}
+
+@mixin positionAbs($width: 100%, $height: 100%, $top: auto, $left: auto) {
+    content: '';
+    position: absolute;
+    width: $width;
+    height: $height;
+    top: $top;
+    left: $left;
+}
+
+@mixin iconImage($url: '', $smaller: 24) {
+    width: rem($smaller);
+    height: rem($smaller);
+    background-image: url($url);
+}
+
+@mixin scrollbars(
+    $size,
+    $foreground-color,
+    $background-color: mix($foreground-color, white, 50%)
+) {
+    // For Google Chrome
+    &::-webkit-scrollbar {
+        width: $size;
+        height: $size;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: $foreground-color;
+        border-radius: 4px;
+    }
+    &::-webkit-scrollbar-track {
+        background: $background-color;
+    }
+    // For Internet Explorer
+    & {
+        scrollbar-face-color: $foreground-color;
+        scrollbar-track-color: $background-color;
+    }
+}

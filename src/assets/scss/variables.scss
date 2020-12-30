@@ -1,0 +1,39 @@
+$transition: 0.2s;
+$transition3: 0.3s;
+$transition4: 0.4s;
+$transitionASecond: 1s;
+$z-1: -1;
+$z1: 1;
+$z2: 2;
+$z12: 12;
+$z10: 10;
+$z999: 999;
+$z20: 20;
+$z70: 70;
+$grid-breakpoints: (
+    xs: 0,
+    sm: 576px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px,
+    4k: 1500px,
+) !default;
+$textShadowlightBack: 0px 4px 4px rgba(0, 0, 0, 0.25);
+// fonts
+$font-lato: 'Lato';
+$font-marsek: 'Marsek Demi';
+$font-amalfi: 'Amalfi Coast';
+$font-raleway: 'Raleway';
+// Border radius
+$radius-xs: 2px;
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+// Region size-screen
+$width-unit: 1366;
+$width-container-unit: 1146;
+$width-unit-left: 1256;
+//resize on unit screen resolution
+$widthStandard: 1366px;
+$widthUnit: 1px / $widthStandard * 100vw;
+$heightUnit: 1px/800px * 100vh;

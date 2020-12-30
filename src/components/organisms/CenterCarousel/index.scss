@@ -1,0 +1,6 @@
+.o-centerCarousel {
+    width: 300px;
+    p {
+        @include text-overflow(2);
+    }
+}

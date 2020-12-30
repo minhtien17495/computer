@@ -1,0 +1,65 @@
+// BASIC COLOR
+$white: #ffffff;
+$antiFlashWhite: #f3f3f3;
+$ghostWhite: #f9f9f9;
+$gainsboro: #dcdcdc;
+$silverChalice: #acacac;
+$sonicSliver: #747474;
+$outerSpace: #464646;
+$black: #000000;
+$blackNew: #010101;
+$eerieBlack: #181818;
+$grayAsparagus: #415f43;
+$britishRacingGreen: #004029;
+$britishRacingGreen015: rgba(#004029, 0.15);
+$asparagus: #7a9f79;
+$lightMossGreen: #accfa7;
+$teaGreen: #d6eed0;
+$darkKhaki: #ceb26a;
+$paleGold: #e1cc8f;
+$mediumChampagne: #f0e0aa;
+$blanchedAlmond: #faf0c9;
+$oldLace: #fcf8e4;
+$battleShipGrey: #828282;
+$darkLiver: #4f4f4f;
+$vividRed: #ff1619;
+$deepMoss: #375139;
+$camel: #B9A05F;
+$platinum: #E7E7E7;
+$grayX11: #B9B9B9;
+$russianGreen: #59845c;
+$deepMossGreen: #39523b;
+$snow: #fafafa;
+$spanishGray: #929292;
+$blackOlive:#3e3e3e;
+$blackBlur01: rgba(0, 0, 0, 0.1);
+$blackBlur02: rgba(0, 0, 0, 0.2);
+$blackBlur05: rgba(0, 0, 0, 0.5);
+$darkKhakiBlur025: rgba(206, 178, 106, 0.25);
+$black1Blur07:rgba(1, 1, 1, 0.7);
+$blackBlur015: rgba(0, 0, 0, 0.15);
+$blackBlur012: rgba(0, 0, 0, 0.12);
+$utility-transparent: transparent;
+$paleGreen: #EBF7E7;
+$lighGreen: #F0FFEB;
+$eerieBlack02:rgba(0, 0, 0, 0.2);
+$blackfilter01:rgba(0, 0, 0, 0.25);
+$white03: rgba(255, 255, 255, 0.3);
+$color-utility-shadow: rgba(60, 92, 62, 0.25);
+$eerieBlack015:rgba(24, 24, 24, 0.15);
+$blackOlive085:rgba(62, 62, 62, 0.85);
+$fauxWhite: #fefefe;
+// TOAST
+$uclaBlue: #4f7a93;
+$oldMossGreen: #848e29;
+$citrine: #e1c500;
+$spanishOrange: #e66107;
+
+/* #region gradient color */
+
+$color-utility-grd-pcc-b: linear-gradient(180deg, $eerieBlack 10.75%, rgba(24, 24, 24, 0) 49.48%, $eerieBlack 89.52%);
+$color-utility-grd-pcc-a: linear-gradient(180deg, rgba(1, 1, 1, 0) 51.84%, #010101 100%);
+$color-utility-grd-pcc-i-b: linear-gradient(180deg, rgba(1, 1, 1, 0) 51.84%, #010101 100%);
+$color-utility-grd-osamc-i-b: linear-gradient(180deg, rgba(1, 1, 1, 0) 67.96%, #010101 100%);
+$color-utility-cb-wi-b: linear-gradient(180deg, rgba(206, 178, 106, 0) 43.92%, rgba(206, 178, 106, 0.85) 100%);
+$color-utility-cbs-wi-b: linear-gradient(180deg, rgba(206, 178, 106, 0) 71.77%, #CEB26A 100%);

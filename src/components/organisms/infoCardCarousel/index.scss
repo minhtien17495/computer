@@ -1,0 +1,87 @@
+.o-infoCardCarousel {
+    &_wrapInfo {
+        height: 100%;
+        width: 70%;
+        display: flex;
+        align-items: center;
+    }
+    &_info {
+        &_description {
+            margin-top: rem(30);
+            @include text-overflow(4);
+        }
+    }
+    &_carousel {
+        &_wrap {
+            max-width: rem(500);
+            padding-left: rem(24);
+            padding-bottom: rem(24);
+            margin-left: auto;
+            position: relative;
+            &::after {
+                @include positionAbs(
+                    calc(100% - 24px),
+                    calc(100% - 24px),
+                    rem(24),
+                    0
+                );
+                border: 1px solid $grayAsparagus;
+                z-index: $z-1;
+            }
+        }
+        &_image {
+            width: 100%;
+        }
+        .slick {
+            &-list {
+                margin-bottom: rem(-5);
+            }
+        }
+
+        &_navigator {
+            @include positionAbs(auto, auto);
+            bottom: rem(-40);
+            right: 0;
+        }
+        &_prev {
+            &:before {
+                @include iconImage('~assets/icons/icon_arrow_circle_prev.svg');
+            }
+        }
+        &_next {
+            margin-left: rem(5);
+            &:before {
+                @include iconImage('~assets/icons/icon_arrow_circle_next.svg');
+            }
+        }
+        &_prev,
+        &_next {
+            &:before {
+                width: rem(8);
+                height: rem(12);
+            }
+        }
+    }
+    .slick-arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: rem(24);
+        height: rem(24);
+        backdrop-filter: blur(15px);
+        border-radius: rem(50);
+        border: 1px solid $silverChalice;
+        @include break-min(768px) {
+            width: rem(32);
+            height: rem(32);
+        }
+        &:before {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            content: '';
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+    }
+}

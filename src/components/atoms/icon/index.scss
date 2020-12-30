@@ -1,0 +1,217 @@
+@mixin iconImage($url: '', $smaller: 24) {
+    width: rem($smaller);
+    height: rem($smaller);
+    background-image: url($url);
+}
+
+.a-icon {
+    display: inline-block;
+    vertical-align: middle;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    &-addPhoto {
+        @include iconImage('~assets/icons/icon_add_photo.svg');
+    }
+    &-add {
+        @include iconImage('~assets/icons/icon_add.svg');
+    }
+    &-arrowDown {
+        @include iconImage('~assets/icons/icon_arrow_down.svg');
+    }
+    &-arrowLeft {
+        @include iconImage('~assets/icons/icon_arrow_left.svg');
+    }
+    &-arrowNext {
+        @include iconImage('~assets/icons/icon_arrow_next.svg');
+    }
+    &-arrowNextWhite {
+        @include iconImage('~assets/icons/icon_arrow_next_white.svg');
+    }
+    &-arrowPrevWhite {
+        @include iconImage('~assets/icons/icon_arrow_prev_white.svg');
+    }
+    &-arrowNextSmall {
+        @include iconImage('~assets/icons/icon_arrow_next_small.svg');
+    }
+    &-arrowPrevSmall {
+        @include iconImage('~assets/icons/icon_arrow_prev_small.svg');
+    }
+    &-arrowCirclePrev {
+        @include iconImage('~assets/icons/icon_arrow_circle_prev.svg');
+    }
+    &-arrowCircleNext {
+        @include iconImage('~assets/icons/icon_arrow_circle_next.svg');
+    }
+    &-arrowNextBlack {
+        @include iconImage('~assets/icons/icon_arrow_next_black.svg');
+    }
+    &-arrowPrevBlack {
+        @include iconImage('~assets/icons/icon_arrow_prev_black.svg');
+    }
+    &-arrowNextGreen {
+        @include iconImage('~assets/icons/icon_arrow_next_green.svg');
+        width: rem(16);
+        height: rem(16);
+    }
+    &-arrowPrevious {
+        @include iconImage('~assets/icons/icon_arrow_previous.svg');
+    }
+    &-arrowRight {
+        @include iconImage('~assets/icons/icon_arrow_right.svg');
+    }
+    &-arrowUp {
+        @include iconImage('~assets/icons/icon_arrow_up.svg');
+    }
+    &-call {
+        @include iconImage('~assets/icons/icon_call.svg');
+    }
+    &-callWhite {
+        @include iconImage('~assets/icons/icon_call_white.svg', 12);
+    }
+    &-checked {
+        @include iconImage('~assets/icons/icon_checked.svg');
+    }
+    &-close {
+        @include iconImage('~assets/icons/icon_close.svg');
+    }
+    &-closeWhite {
+        @include iconImage('~assets/icons/icon_close_white.svg');
+    }
+    &-dateRange {
+        @include iconImage('~assets/icons/icon_date_range.svg');
+    }
+    &-deleteOutline {
+        @include iconImage('~assets/icons/icon_delete_outline.svg');
+    }
+    &-edit {
+        @include iconImage('~assets/icons/icon_edit.svg');
+    }
+    &-email {
+        @include iconImage('~assets/icons/icon_email.svg');
+    }
+    &-emojiEvents {
+        @include iconImage('~assets/icons/icon_emoji_events.svg');
+    }
+    &-errorOutline {
+        @include iconImage('~assets/icons/icon_error_outline.svg');
+    }
+    &-fullscreenExit {
+        @include iconImage('~assets/icons/icon_fullscreen_exit.svg');
+    }
+    &-fullscreen {
+        @include iconImage('~assets/icons/icon_fullscreen.svg');
+    }
+    &-facebook {
+        @include iconImage('~assets/icons/icon_facebook.svg');
+    }
+    &-gTranslate {
+        @include iconImage('~assets/icons/icon_g_translate.svg');
+    }
+    &-gilf {
+        @include iconImage('~assets/icons/icon_gilf.svg');
+    }
+    &-translate {
+        @include iconImage('~assets/icons/icon_translate.svg');
+    }
+    &-twister {
+        @include iconImage('~assets/icons/icon_twister.svg');
+    }
+    &-tripadsor {
+        @include iconImage('~assets/icons/icon_tripadsor.svg');
+    }
+    &-info {
+        @include iconImage('~assets/icons/icon_info.svg');
+    }
+    &-language {
+        @include iconImage('~assets/icons/icon_language.svg');
+    }
+    &-location {
+        @include iconImage('~assets/icons/icon_location.svg');
+    }
+    &-locationGray {
+        @include iconImage('~assets/icons/icon_location_gray.svg');
+    }
+    &-pauseCircleOutline {
+        @include iconImage('~assets/icons/icon_pause_circle_outline.svg');
+    }
+    &-pause {
+        @include iconImage('~assets/icons/icon_pause.svg');
+    }
+    &-person {
+        @include iconImage('~assets/icons/icon_person.svg');
+    }
+    &-playArrow {
+        @include iconImage('~assets/icons/icon_play_arrow.svg');
+    }
+    &-playCircleOutline {
+        @include iconImage('~assets/icons/icon_play_circle_outline.svg');
+    }
+    &-print {
+        @include iconImage('~assets/icons/icon_print.svg');
+    }
+    &-quote {
+        @include iconImage('~assets/icons/icon_quote.svg');
+    }
+    &-remove {
+        @include iconImage('~assets/icons/icon_remove.svg');
+    }
+    &-saveAlt {
+        @include iconImage('~assets/icons/icon_save_alt.svg');
+    }
+    &-search {
+        @include iconImage('~assets/icons/icon_search.svg');
+    }
+    &-searchWhite {
+        @include iconImage('~assets/icons/icon_search_white.svg');
+    }
+    &-searchDarkKhaki {
+        @include iconImage('~assets/icons/icon_search_darkkhaki.svg');
+    }
+    &-skipNext {
+        @include iconImage('~assets/icons/icon_skip_next.svg');
+    }
+    &-skipPrevious {
+        @include iconImage('~assets/icons/icon_skip_previous.svg');
+    }
+    &-split {
+        @include iconImage('~assets/icons/icon_split.svg');
+    }
+    &-timer {
+        @include iconImage('~assets/icons/icon_timer.svg');
+    }
+    &-timerGray {
+        @include iconImage('~assets/icons/icon_timer_gray.svg');
+    }
+    &-timerGreen {
+        @include iconImage('~assets/icons/icon_timer_green.svg', 16);
+    }
+    &-visibility {
+        @include iconImage('~assets/icons/icon_visibility.svg');
+    }
+    &-visibilityOff {
+        @include iconImage('~assets/icons/icon_visibility_off.svg');
+    }
+    &-warning {
+        @include iconImage('~assets/icons/icon_warning.svg');
+    }
+    &-pdf {
+        @include iconImage('~assets/icons/icon_pdf.svg');
+        width: rem(36);
+        height: rem(36);
+    }
+    &-quoteLeft {
+        @include iconImage('~assets/icons/icon_quote_left.svg');
+    }
+    &-quoteRight {
+        @include iconImage('~assets/icons/icon_quote_right.svg');
+    }
+    &-quoteLeftWhite {
+        @include iconImage('~assets/icons/icon_quote_left_white.svg');
+    }
+    &-scrollDown {
+        @include iconImage('~assets/icons/icon_scroll_down.svg');
+        width: rem(18);
+        height: rem(18);
+    }
+}
