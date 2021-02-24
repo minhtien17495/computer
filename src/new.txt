@@ -1,0 +1,461 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Row, Col, Container } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { useHistory, useParams, useLocation } from 'react-router-dom';
+
+import { cmsHttp } from 'apis/instance';
+import { postStartPhase } from 'apis/requests/detailcourse';
+import getEstimatePhase, { ResponseEstimatePhase } from 'apis/requests/estimate';
+import Heading from 'components/atoms/Heading';
+import IconButton from 'components/atoms/IconButton';
+import Loading from 'components/atoms/Loading';
+import Text from 'components/atoms/Text';
+import AboutPhase from 'components/organisms/AboutPhase';
+import AssessmentSheet from 'components/organisms/AssessmentSheet';
+import CourseProcess from 'components/organisms/CourseProcess';
+import CourseSupport from 'components/organisms/CourseSupport';
+import Footer from 'components/organisms/Footer';
+import Header from 'components/organisms/Header';
+import ModalShowError from 'components/organisms/ModalShowError';
+import ModalTermPolicy, { PhaseInfo } from 'components/organisms/ModalTermPolicy';
+import CourseFolder from 'components/templates/CourseFolder';
+import FootwearCourseOverview from 'components/templates/FootwearCourseOverview';
+import ParticipantReportModal from 'components/templates/ParticipantReportModal';
+import UploadModal from 'components/templates/UploadModal';
+import { findPhaseActive, smoothScrollTo } from 'function/func';
+import {
+  getPercentOfProcess,
+  getNameCourse,
+  getNamePhase,
+  getCourseTranslations,
+} from 'function/utils';
+import { UserSigninResponse } from 'reducers/auth/types';
+import { requestAssessmentCourse } from 'reducers/detailcourse/criteria/actions';
+import { requestGetAllFolder, cleanAllfolder } from 'reducers/detailcourse/foldercourse/actions';
+import { DataResponse } from 'reducers/detailcourse/foldercourse/types';
+import { requestDetailCourse, requestCleanUp } from 'reducers/detailcourse/phase/actions';
+import { SlugCourse, Phase, DataDetailCourseResponse } from 'reducers/detailcourse/phase/types';
+import { requestGetProgress } from 'reducers/detailcourse/progess/actions';
+import { requestStartLoading, requestStopLoading } from 'reducers/loading/actions';
+import { requestHideModalError, requestShowModalError } from 'reducers/modalerror/action';
+import { requestGetDataHomePage } from 'reducers/pages/home/action';
+import { DataSectionSupport, ItemPhase } from 'reducers/pages/home/types';
+import useSelector from 'selectors/useSelector';
+
+
+const excuteScroll = (ele: React.MutableRefObject<HTMLDivElement|null>, time = 1500): void => {
+  if (ele.current) {
+    smoothScrollTo(ele.current.offsetTop, time);
+  }
+};
+
+const checkNull = (condition: any, callback?: () => void, callback2?: () => void): void => {
+  if (condition && callback) { callback(); return; }
+  if (callback2) { callback2(); }
+};
+
+type propsRenderContent={
+  user: UserSigninResponse|null;
+  phase: DataDetailCourseResponse | null;
+  foldercourse: DataResponse | null;
+  phaseSelect: Phase|undefined;
+  language: string;
+  progress: ItemPhase[] | null;
+  translateAssessment: string;
+  translateProcessTitle: string;
+  showLayer: boolean;
+  aboutCourseRef: React.RefObject<HTMLDivElement> | null;
+  courseSupportRef: React.RefObject<HTMLDivElement> | null;
+  isShowArticle: boolean;
+  indexPhaseSelect: number;
+  cmsHttpProps: string;
+  sectionSupport: DataSectionSupport | null | undefined;
+  handleGoBack: () => void;
+  handleOpenAssementModal?: (arg: number | null) => void;
+  handleSelectPhase?: (phase: Phase) => void;
+  handleReadArticle?: () => void;
+  handleShowModal?: () => void;
+  handleSetFolderSelected?: (idFolder: number) => void;
+  handleShowLayer?: () => void;
+}
+
+const RenderContent: React.FC<propsRenderContent> = ({
+  user,
+  phase,
+  foldercourse,
+  phaseSelect,
+  language,
+  progress,
+  translateAssessment,
+  translateProcessTitle,
+  showLayer,
+  aboutCourseRef,
+  isShowArticle,
+  courseSupportRef,
+  indexPhaseSelect,
+  cmsHttpProps,
+  sectionSupport,
+  handleGoBack,
+  handleOpenAssementModal,
+  handleSelectPhase,
+  handleReadArticle,
+  handleShowModal,
+  handleSetFolderSelected,
+  handleShowLayer,
+
+}) => (
+  <>
+    <Container>
+      <div className="p-footwearcourse">
+        <div className="p-footwearcourse_main">
+          <Row className="p-footwearcourse_row">
+            <Col className="p-footwearcourse_col-left" xl={8}>
+              <div className="p-footwearcourse_left">
+                <div className="p-footwearcourse_icon">
+                  <IconButton handleClick={handleGoBack} iconName="angle-left" />
+                </div>
+                <div className="p-footwearcourse_left-heading">
+                  {phase && (
+                  <Heading modifiers={['font-muli', 'brand-blue-dark', 'center']}>
+                    {getNameCourse(phase, language)}
+                  </Heading>
+                  )}
+                  {progress && (
+                  <div className={progress.length === 5 ? 'p-footwearcourse_assessment' : 'p-footwearcourse_assessment clear-margin'}>
+                    <Text modifiers={['brand-blue-dark']} weight="bold">{translateAssessment}</Text>
+                    <AssessmentSheet
+                      handleClick={handleOpenAssementModal}
+                      listData={progress}
+                    />
+                  </div>
+                  )}
+                </div>
+              </div>
+            </Col>
+            <Col className="p-footwearcourse_col-right" xl={4}>
+              <div className="p-footwearcourse_right">
+                {user && (
+                <FootwearCourseOverview
+                  courseStart={phase && phase.startDate}
+                  courseEnd={phase && phase.endDate}
+                  timeStamp={phaseSelect}
+                  user={{
+                    firtName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    srcImg: user.image,
+                    studentId: user.studentId,
+                  }}
+                  nameCourse={getNameCourse(phase, language)}
+                  courseProgress={
+            foldercourse && foldercourse.courseProgress
+          }
+                  nearDeadline={
+            foldercourse && foldercourse.nearDeadline
+          }
+                />
+                )}
+              </div>
+            </Col>
+            <Col className="p-footwearcourse_col-end" xl={8}>
+              <div className="p-footwearcourse_claim">
+                <Text modifiers={['brand-blue-dark']}>
+                  {phase && (
+                  <>
+                    <span>
+                      {`${getNameCourse(phase, language)} ${getNamePhase(language, phaseSelect)} `}
+                      {translateProcessTitle}
+                        :
+                      {' '}
+                    </span>
+                    <span className="p-footwearcourse_number">
+                      {
+                            getPercentOfProcess(phaseSelect)
+                          }
+                    </span>
+                  </>
+                  )}
+                </Text>
+              </div>
+              {
+                 phase
+                 && (
+                 <CourseProcess
+                   handleSelect={handleSelectPhase}
+                   listPhaseData={phase.phases}
+                 />
+                 )
+                }
+              <div className="p-footwearcourse_course-folder">
+                <CourseFolder
+                  handleReadArticle={handleReadArticle}
+                  phaseName={(phaseSelect && phaseSelect.phasesTranslations[0].name) || ''}
+                  listFolder={foldercourse && foldercourse.phaseFolders}
+                  handleClick={handleShowModal}
+                  endDate={phaseSelect && phaseSelect.accounts.length > 0
+                    ? phaseSelect.accounts[0].AccountPhasesModel.endDate : undefined}
+                  handleSelectedFolder={handleSetFolderSelected}
+                  showLayer={showLayer}
+                  handleShowLayer={handleShowLayer}
+                />
+              </div>
+            </Col>
+          </Row>
+        </div>
+      </div>
+    </Container>
+    <div id="aboutCourseRef" ref={aboutCourseRef} />
+    {isShowArticle && phaseSelect && (
+      <div className="o-siteLayout_noPadding">
+        <AboutPhase
+          positionPhase={indexPhaseSelect}
+          title={phaseSelect.phasesTranslations[0].name}
+          linkVideo={cmsHttpProps + phaseSelect.video}
+          description={phaseSelect.phasesTranslations[0].description}
+        />
+        <div id="courseSupport" ref={courseSupportRef} />
+        {phase && sectionSupport && (
+        <CourseSupport
+          courseManagement={phase.courseManagement}
+          courseFormats={phase.courseFormats}
+          supportAndAdvices={phase.supportAndAdvices}
+          suppliers={phase.suppliers}
+          supportCourse={phase.courseTranslations}
+          sectionSupport={sectionSupport}
+        />
+        )}
+      </div>
+    )}
+  </>
+);
+
+const FootwearCourse: React.FC = () => {
+  const { t, i18n } = useTranslation('footwear_course');
+  const courseSupportRef = useRef<HTMLDivElement | null>(null);
+  const aboutCourseRef = useRef<HTMLDivElement | null>(null);
+  const { slug } = useParams() as { slug: SlugCourse };
+  const history = useHistory();
+  const location = useLocation<{phaseSlug: string}>();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const modalerror = useSelector((state) => state.modalerror);
+  const { sectionSupport } = useSelector((state) => state.pages.home);
+  const {
+    phase,
+    progress,
+    foldercourse,
+    criteria,
+  } = useSelector((state) => state.detailcourse);
+
+  const [folderSelected, setFolderSelected] = useState(0);
+  const [activePhase, setActivePhase] = useState(0);
+  const [isShowModal, setisShowModal] = useState(false);
+  const [isShowModalParticipant, setisShowModalParticipant] = useState(false);
+  const [phaseSelect, setPhaseSelect] = useState<Phase>();
+  const [indexPhaseSelect, setIndexPhaseSelect] = useState(0);
+  const [showLayer, setShowLayer] = useState(true);
+  const [isShowModalEstimate, setIsShowModalEstimate] = useState(false);
+  const [phaseEstimateInfo, setPhaseEstimateInfo] = useState<PhaseInfo>();
+  const [isShowArticle, setIsShowArticle] = useState(false);
+
+
+  const requestFolder = (itemPhase: Phase): void => {
+    checkNull(itemPhase.accounts.length, () => {
+      dispatch(requestGetAllFolder({
+        phaseSlug: itemPhase.phasesTranslations[0].slug,
+        courseSlug: slug,
+      }));
+    });
+    dispatch(cleanAllfolder());
+  };
+
+  const handleSelectPhase = (itemPhase: Phase): void => {
+    requestFolder(itemPhase);
+    setPhaseSelect(itemPhase);
+    setShowLayer(true);
+    setIsShowArticle(false);
+  };
+
+  const handleOpenAssementModal = (phaseId: number | null): void => {
+    checkNull(phaseId, () => {
+      setActivePhase(phaseId as number);
+      setisShowModalParticipant(() => {
+        dispatch(requestAssessmentCourse(slug));
+        return true;
+      });
+    });
+  };
+
+  const handleReDispatchAction = (): void => {
+    dispatch(requestAssessmentCourse(slug));
+  };
+
+  const handleShowLayerAndStartPhase = async (): Promise<void> => {
+    if (!phaseSelect) return;
+    if (phaseSelect.accounts.length > 0) {
+      dispatch(requestGetAllFolder({
+        phaseSlug: phaseSelect.phasesTranslations[0].slug,
+        courseSlug: slug,
+      }));
+      setShowLayer(false);
+      return;
+    }
+    try {
+      dispatch(requestStartLoading());
+      const res = await getEstimatePhase({
+        slugCourse: slug,
+        slugPhase: phaseSelect.phasesTranslations[0].slug,
+      }) as ResponseEstimatePhase;
+      setPhaseEstimateInfo({
+        namePhase: phaseSelect.phasesTranslations[0].name,
+        timeStartEstimate: res.phases[0].estimateStartDate,
+        timeEndEstimate: res.phases[0].estimateEndDate,
+        isPhaseCanNotStart: false,
+      });
+      setIsShowModalEstimate(true);
+      dispatch(requestStopLoading());
+    } catch (error) {
+      dispatch(requestStopLoading());
+      dispatch(requestShowModalError(error[0].code));
+    }
+  };
+
+  const handleStartPhase = async (): Promise<void> => {
+    if (!phaseSelect) return;
+    try {
+      dispatch(requestStartLoading());
+      await postStartPhase({
+        phaseId: phaseSelect.phasesTranslations[0].phaseId,
+      });
+      dispatch(requestDetailCourse(slug));
+      dispatch(requestGetAllFolder({
+        phaseSlug: phaseSelect.phasesTranslations[0].slug,
+        courseSlug: slug,
+      }));
+      setIsShowModalEstimate(false);
+      setShowLayer(false);
+      dispatch(requestStopLoading());
+    } catch (error) {
+      setIsShowModalEstimate(false);
+      dispatch(requestStopLoading());
+      dispatch(requestShowModalError(error[0].code));
+    }
+  };
+
+  const handleHideModalError = (): void => {
+    dispatch(requestHideModalError());
+  };
+
+  const handleReadArticle = (): void => {
+    if (!phaseSelect || !phase.data) return;
+    const index = phase.data.phases.findIndex((item) => item.id === phaseSelect.id);
+    if (index !== 0 && phaseSelect && phaseSelect.accounts.length <= 0) return;
+    setIndexPhaseSelect(index);
+    setIsShowArticle(true);
+    excuteScroll(aboutCourseRef);
+  };
+
+  useEffect(() => {
+    dispatch(requestGetDataHomePage());
+    dispatch(requestDetailCourse(slug));
+    dispatch(requestGetProgress(slug));
+    return (): void => {
+      dispatch(requestCleanUp());
+      dispatch(cleanAllfolder());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, i18n.language]);
+
+  useEffect(() => {
+    const findCourse = getCourseTranslations(phase.data, i18n.language);
+    if (findCourse) {
+      history.replace(`/participant/course/${findCourse.slug}`);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language, phase]);
+
+  const setPhaseActiveEffect = (): void => {
+    if (!phase.data) return;
+    if (phase.data.phases.length === 0) {
+      history.push('/');
+    }
+    if (location.state && location.state.phaseSlug) {
+      const phaseActiveByLocation = phase.data.phases.find((item) => item.phasesTranslations[0]
+        .slug === location.state.phaseSlug);
+      if (phaseActiveByLocation) {
+        setPhaseSelect(phaseActiveByLocation);
+      }
+      return;
+    }
+
+    const phaseActive = findPhaseActive(phase.data);
+    if (phaseActive) {
+      setPhaseSelect(phaseActive);
+    }
+  };
+
+  useEffect(setPhaseActiveEffect, [phase.data]);
+
+  return (
+    <div className="o-siteLayout">
+      <Loading iShow={phase.loading || foldercourse.loading || criteria.loading} />
+      <Header siteHeader />
+      {/* Modal show error */}
+      <ModalShowError
+        codeError={modalerror.code}
+        isShowModalError={modalerror.show}
+        handleHideModalError={handleHideModalError}
+      />
+
+      <ModalTermPolicy
+        isShowModalTermPolicy={isShowModalEstimate}
+        type="startPhase"
+        phaseInfo={phaseEstimateInfo}
+        handleStartCourse={(): void => { handleStartPhase(); }}
+        handleHide={(): void => setIsShowModalEstimate(!isShowModalEstimate)}
+      />
+      <UploadModal
+        phaseFolderId={folderSelected}
+        onHideModel={(): void => setisShowModal(!isShowModal)}
+        isShowModal={isShowModal}
+      />
+      {criteria.data && (
+      <ParticipantReportModal
+        handleReceiveComment={handleReDispatchAction}
+        dataAssessment={criteria.data}
+        activePhase={activePhase}
+        isShow={isShowModalParticipant}
+        handleHideModal={(): void => setisShowModalParticipant(false)}
+      />
+      )}
+      <RenderContent
+        user={user}
+        phase={phase.data}
+        foldercourse={foldercourse.data}
+        phaseSelect={phaseSelect}
+        language={i18n.language}
+        progress={progress.data}
+        translateAssessment={t('assessment')}
+        translateProcessTitle={t('process_title')}
+        showLayer={showLayer}
+        aboutCourseRef={aboutCourseRef}
+        courseSupportRef={courseSupportRef}
+        isShowArticle={isShowArticle}
+        indexPhaseSelect={indexPhaseSelect}
+        cmsHttpProps={cmsHttp}
+        sectionSupport={sectionSupport}
+        handleGoBack={(): void => history.goBack()}
+        handleOpenAssementModal={handleOpenAssementModal}
+        handleSelectPhase={handleSelectPhase}
+        handleReadArticle={handleReadArticle}
+        handleShowModal={(): void => setisShowModal(true)}
+        handleSetFolderSelected={(idFolder: number): void => setFolderSelected(idFolder)}
+        handleShowLayer={(): void => { handleShowLayerAndStartPhase(); }}
+      />
+      <Footer />
+    </div>
+  );
+};
+
+export default FootwearCourse;
