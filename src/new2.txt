@@ -1,0 +1,74 @@
+/* eslint-disable react/jsx-props-no-spreading */
+import React, { forwardRef } from "react";
+import { useFormContext, get } from "react-hook-form";
+
+import Icon from "components/atoms/Icon";
+import mapModifiers from "utils/functions";
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  type?: string;
+  placeholder?: string;
+  name: string;
+  id?: string;
+  defaultValue?: string;
+  disabled?: boolean;
+  modifiers?: ("primary"|"search"|"searchFocus")[];
+  handleChange?: () => void;
+  handleClickIconSearch?:()=>void;
+  handleKeyDown?:(event: React.KeyboardEvent<HTMLInputElement>) => void;
+  error?:string;
+  // ref?:React.RefObject<HTMLInputElement> | null ;
+}
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({
+    type,
+    placeholder,
+    name,
+    id,
+    defaultValue,
+    disabled,
+    modifiers,
+    handleChange,
+    handleClickIconSearch,
+    handleKeyDown,
+    error,
+    ...rest
+  }, ref) => (
+    <div className={mapModifiers("a-input", modifiers)}>
+      <input
+        className={mapModifiers("a-input_input", error ? ["error"] : [])}
+        type={type}
+        name={name}
+        id={id}
+        placeholder={placeholder}
+        defaultValue={defaultValue || undefined}
+        disabled={disabled}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        autoComplete="off"
+        ref={ref}
+        {...rest}
+      />
+      {error && <div className="a-input_error">{error}</div>}
+      {modifiers?.includes("search") && (
+      <div className="a-input-search_iconSearch" onClick={handleClickIconSearch}>
+        <Icon iconName="searchGray" />
+      </div>
+      )}
+    </div>
+  ),
+);
+
+export default Input;
+
+export const InputHookForm:React.FC<InputProps> = (props) => {
+  const { register, errors } = useFormContext();
+  const hasError: Record<string, string> = get(errors, `${{ ...props }.name}`);
+  return (
+    <Input
+      ref={register}
+      error={hasError.message}
+      {...props}
+    />
+  );
+};
