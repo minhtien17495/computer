@@ -1,74 +1,93 @@
-/* eslint-disable react/jsx-props-no-spreading */
-import React, { forwardRef } from "react";
-import { useFormContext, get } from "react-hook-form";
+.m-cardCoursePaymentImage{
+  position: relative;
+  border-radius: rem(5);
+  overflow: hidden;
+  cursor: pointer;
+  &-active{
+    border: 2px solid $brand_yellow;
+  }
+  &-dontPayment{
+    cursor:initial;
+  }
 
-import Icon from "components/atoms/Icon";
-import mapModifiers from "utils/functions";
+  &_layerBg{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color:$brand_blue_dark;
+    opacity: 0.6;
+    z-index: 2;
+    transition: 0.3s;
+  }
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  type?: string;
-  placeholder?: string;
-  name: string;
-  id?: string;
-  defaultValue?: string;
-  disabled?: boolean;
-  modifiers?: ("primary"|"search"|"searchFocus")[];
-  handleChange?: () => void;
-  handleClickIconSearch?:()=>void;
-  handleKeyDown?:(event: React.KeyboardEvent<HTMLInputElement>) => void;
-  error?:string;
-  // ref?:React.RefObject<HTMLInputElement> | null ;
+  &_layerPayment{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+  }
+
+  &_payment{
+    text-align: center;
+    .a-icon{
+      cursor: pointer;
+    }
+  }
+
+  &_text{
+    margin-top: rem(10);
+  }
+
+  &_status{
+    padding: rem(10);
+    background-color: white;
+    border-radius: rem(5);
+    border: 1px solid $brand_blue_dark;
+    position: absolute;
+    z-index: 1;
+    bottom: rem(10);
+    right: rem(10);
+  }
 }
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({
-    type,
-    placeholder,
-    name,
-    id,
-    defaultValue,
-    disabled,
-    modifiers,
-    handleChange,
-    handleClickIconSearch,
-    handleKeyDown,
-    error,
-    ...rest
-  }, ref) => (
-    <div className={mapModifiers("a-input", modifiers)}>
-      <input
-        className={mapModifiers("a-input_input", error ? ["error"] : [])}
-        type={type}
-        name={name}
-        id={id}
-        placeholder={placeholder}
-        defaultValue={defaultValue || undefined}
-        disabled={disabled}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        autoComplete="off"
-        ref={ref}
-        {...rest}
-      />
-      {error && <div className="a-input_error">{error}</div>}
-      {modifiers?.includes("search") && (
-      <div className="a-input-search_iconSearch" onClick={handleClickIconSearch}>
-        <Icon iconName="searchGray" />
-      </div>
-      )}
-    </div>
-  ),
-);
 
-export default Input;
-
-export const InputHookForm:React.FC<InputProps> = (props) => {
-  const { register, errors } = useFormContext();
-  const hasError: Record<string, string> = get(errors, `${{ ...props }.name}`);
-  return (
-    <Input
-      ref={register}
-      error={hasError.message}
-      {...props}
-    />
-  );
-};
+.m-cardCoursePayment{
+  $root:&;
+  &:hover{
+    .m-cardCoursePaymentImage_layerBg{
+      top: -100%;
+    }
+  }
+  &-active{
+    #{$root}_content{
+      opacity: 1;
+    }
+    .m-cardCoursePaymentImage_layerBg{
+      display: none;
+    }
+  }
+  &_content{
+    opacity: 0.4;
+  }
+  &_title{
+    padding-top: rem(20);
+    @include textOverflow(2);
+    @include mobile-down {
+      margin-top: rem(16);
+    }
+  }
+  &_description{
+    width: 75%;
+    margin-top: rem(10);
+    @include textOverflow(3);
+    @include mobile-down {
+      width: 100%;
+    }
+  }
+}
