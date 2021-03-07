@@ -1,417 +1,77 @@
+.o-courseListHome{
+  margin-top: rem(60);
+  &_slider{
+    margin-top: rem(40);
+    position: relative;
+    padding: rem(50) rem(138) rem(100) rem(138);
+    border: 3px solid $brand_yellow;
+    border-radius: rem(10);
+    box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.6);
+    background-image: linear-gradient(to right,#00468c 0%, #4ca1af 100%);
+    @include small-mobile {
+      padding: rem(30) rem(16);
+    }
+  
+    &::before{
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-image: url('~images/bg_courselist.svg');
+      background-size: cover;
+      opacity: 0.6;
+    }
+  }
 
-import { yupResolver } from '@hookform/resolvers';
-import React, { useState, useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import * as yup from 'yup';
 
-import { postParticipantComment } from 'apis/requests/detailcourse';
-import Button from 'components/atoms/Button';
-import Text from 'components/atoms/Text';
-import Score from 'components/molecules/Score';
-import TextValue from 'components/molecules/TextValue';
-import Texarea from 'components/molecules/Textarea';
-import Modal from 'components/organisms/Modal';
-import { formatDate, getTranslateCriteria } from 'function/func';
-import mapModifiers from 'function/mapModifier';
-import i18n from 'i18n';
-import { DataAssessmentCourseResponse, PhaseAssessment } from 'reducers/detailcourse/criteria/types';
+  &_list {
+    .slick-list{
+      margin-left: rem(8);
+      margin-right: rem(8);
+    }
+    .slick-slide {
+        padding-left: rem(8);
+        padding-right: rem(8);
+    }
+    .slick-dots {
+        position: relative;
+        bottom: rem(-50);
+        display: flex !important;
+        justify-content: center;
 
-const schema = yup.object().shape({
-  comment: yup.string().required(),
-});
-interface InfoPhase {
-  nameExpert: string;
-  commentExpert: string | null;
-  dateComment: string;
-  namePhase: string;
-  phaseScore: number | null;
-  startAssessment: string;
-  endAssessment: string;
-  img: string | null;
-  dateOfBirth: string;
-  description: string|null;
-}
-type propsRenderContent={
-  isShow: boolean;
-  infoPhase?: InfoPhase;
-  translate: {
-    startDate: string;
-    endDate: string;
-    total: string;
-    expertComment: string;
-    participantComment: string;
-    think: string;
-    titleScore: string;
-    btnCancel: string;
-    btnConfirm: string;
-    btnEdit: string;
-    report: string;
-    examiner: string;
-    criteria: string;
-    placeholderEnterMessage: string;
-  };
-  dataAssessment: DataAssessmentCourseResponse;
-  phaseIdActive: string | number;
-  isCommentParticipant: boolean;
-  isConfirmComment: boolean;
-  handleHideModal?: () => void;
-  handleActivePhase: (phaseId: number | string) => void;
-  handleChangeTitleBtnComment: () => void;
-  handleSetConfirmComment: () => void;
-  handleReceiveComment?: () => void;
-}
-
-const RenderContent: React.FC<propsRenderContent> = ({
-  isShow,
-  infoPhase,
-  translate,
-  dataAssessment,
-  phaseIdActive,
-  isCommentParticipant,
-  isConfirmComment,
-  handleHideModal,
-  handleActivePhase,
-  handleChangeTitleBtnComment,
-  handleSetConfirmComment,
-  handleReceiveComment,
-}) => {
-  const methos = useForm<{ comment: string }>({
-    resolver: yupResolver(schema),
-  });
-
-  const handleSubmitComment = (): void => {
-    if (!handleReceiveComment) return;
-    methos.handleSubmit((value) => {
-      (async (): Promise<void> => {
-        const res = await postParticipantComment({
-          comment: value.comment,
-          courseId: dataAssessment.listPhases[0].courseId,
-        });
-        if (typeof res === 'boolean' && res) {
-          handleReceiveComment();
+        @include small-mobile {
+          bottom:rem(-15);
         }
-      })();
-    })();
-  };
-  const isCheckSrocePhaseNearTotal = (): boolean => {
-    if (dataAssessment.listPhases
-        && dataAssessment.listPhases[dataAssessment.listPhases.length - 1].accounts.length > 0
-        && dataAssessment.listPhases[dataAssessment.listPhases.length - 1].accounts[0]
-          .AccountPhasesModel.assessment
-    ) return true;
-    return false;
-  };
-  return (
-    <Modal modifier="report" isShow={isShow} onHide={handleHideModal}>
-      {infoPhase && (
-      <div className={mapModifiers('t-reportmodal')}>
-        <div className="t-reportmodal_header">
-          <div className="t-reportmodal_top">
-            <div className="t-reportmodal_title">
-              <Text weight="bold" modifiers={['brand-blue-dark']} size="xl">{translate.report}</Text>
-            </div>
-            <div className="t-reportmodal_info">
-              <div className="t-reportmodal_exam">
-                <Text weight="bold" modifiers={['brand-blue-dark']}>{translate.examiner}</Text>
-              </div>
-              <div className="t-reportmodal_date">
-                <TextValue
-                  value={infoPhase.startAssessment ? infoPhase.startAssessment : ''}
-                  title={translate.startDate}
-                  modifier="block"
-                />
-                <TextValue
-                  value={infoPhase.endAssessment ? infoPhase.endAssessment : ''}
-                  title={translate.endDate}
-                  modifier="block"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="t-reportmodal_body">
-          <div className="t-reportmodal_middle">
-            <table cellPadding="0" cellSpacing="0">
-              <thead>
-                <tr className="table_tr-title">
-                  <th>
-                    <Text weight="bold" modifiers={['brand-blue-dark']}>{translate.criteria}</Text>
-                  </th>
-                  {dataAssessment.listPhases.map((item, index) => (
-                    <th
-                      key={`titlePhase${index.toString()}`}
-                      onClick={(): void => handleActivePhase(
-                        item.phasesTranslations[0].phaseId,
-                      )}
-                      className={phaseIdActive === item.phasesTranslations[0].phaseId ? 'score-ab active' : 'score-ab'}
-                    >
-                      <Text weight="bold" modifiers={['gray', 'center']} size="xs">
-                        {`Phase ${index + 1}`}
-                      </Text>
-                    </th>
-                  ))}
-                  <th
-                    onClick={(): void => handleActivePhase('total')}
-                    className={phaseIdActive === 'total' ? 'score-ab active' : 'score-ab'}
-                  >
-                    <Text weight="bold" modifiers={['gray', 'center']} size="xs">{translate.total}</Text>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {dataAssessment.listCriterias.map((item, index) => (
-                  <tr key={`score${index.toString()}`} className="t-reportmodal_active">
-                    <td>{getTranslateCriteria(i18n, item.criteriaTranslations).name}</td>
-                    {
-                      item.listPhaseMarks.map((itemPhase, indexPhase) => (
-                        <td key={`scorePhase${indexPhase.toString()}`} className={phaseIdActive === itemPhase.phaseId ? 'active' : itemPhase.score ? '' : 'score-mark'}>
-                          <div className="score-ab"><span /></div>
-                          <Score score={itemPhase.score} />
-                        </td>
-                      ))
-                    }
-                    <td className={phaseIdActive === 'total' ? 'active' : item.avgMark && isCheckSrocePhaseNearTotal() ? '' : 'score-mark'}>
-                      <div className="score-ab"><span /></div>
-                      <Score score={isCheckSrocePhaseNearTotal() ? item.avgMark : null} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="t-reportmodal_footer">
-          <div className="t-reportmodal_bottom">
-            <div className="t-reportmodal_comment">
-              <Text weight="bold" modifiers={['brand-blue-dark']}>
-                {!isCommentParticipant && dataAssessment ? `${phaseIdActive === 'total'
-                  ? translate.total : infoPhase.namePhase}
-                  ${translate.expertComment.toLocaleLowerCase()}` : translate.participantComment}
-              </Text>
-              {dataAssessment && dataAssessment.isCompleted ? (
-                <div onClick={handleChangeTitleBtnComment} className="t-reportmodal_comment_btn">
-                  <Text weight="bold" modifiers={['brand-blue-dark']} size="xs">
-                    {!isCommentParticipant ? translate.participantComment : translate.expertComment}
-                  </Text>
-                </div>
-              ) : ''}
-            </div>
-            <div className="t-reportmodal_text">
-              <div className="t-reportmodal_textarea">
-                {!isCommentParticipant ? (
-                  <div className="t-reportmodal_textarea_expert">
-                    <div className="t-reportmodal_textarea_expert_info">
-                      <Text>
-                        {infoPhase.nameExpert}
-                      </Text>
-                      <Text>
-                        {infoPhase.dateComment ? infoPhase.dateComment : ''}
-                      </Text>
-                    </div>
-                    <div className="t-reportmodal_textarea_expert_comment">
-                      <Text>
-                        {infoPhase.commentExpert}
-                      </Text>
-                    </div>
-                  </div>
-                )
-                  : (dataAssessment.finalComment
-                    ? (
-                      <div className="t-reportmodal_textarea_expert placehoder">
-                        <div className="t-reportmodal_textarea_expert_comment r">
-                          <Text>
-                            {dataAssessment.finalComment}
-                          </Text>
-                        </div>
-                      </div>
-                    )
-                    : (!isConfirmComment ? (
-                      <div className="t-reportmodal_textarea_expert placehoder">
-                        <div className="t-reportmodal_textarea_expert_comment r">
-                          <Text>
-                            {translate.think}
-                          </Text>
-                        </div>
-                      </div>
-                    )
-                      : (
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                        <FormProvider {...methos}>
-                          <form>
-                            <Texarea name="comment" placeholder={translate.placeholderEnterMessage} />
-                          </form>
-                        </FormProvider>
-                      )
-                    ))}
-              </div>
-              <div className="t-reportmodal_score">
-                {!isCommentParticipant ? (
-                  <>
-                    <Text weight="bold" modifiers={['brand-blue-dark']}>
-                      {`${translate.titleScore} ${(phaseIdActive === 'total' ? 'Total' : infoPhase.namePhase)}`}
-                    </Text>
-                    <div className="t-reportmodal_total">
-                      <Score score={(phaseIdActive === 'total' ? dataAssessment.finalMark : infoPhase.phaseScore) || null} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {dataAssessment.finalComment ? '' : isConfirmComment
-                      ? (
-                        <div className="t-reportmodal_score_confirm">
-                          <Button
-                            modifiers={['ovalOutline', 'uppercase', 'bold']}
-                            type="submit"
-                            handleClick={handleSetConfirmComment}
-                          >
-                            {translate.btnCancel}
-                          </Button>
-                          <Button
-                            modifiers={['white', 'ovalFill', 'uppercase', 'bold', 'shadow']}
-                            type="submit"
-                            handleClick={handleSubmitComment}
-                          >
-                            {translate.btnConfirm}
-                          </Button>
-                        </div>
-                      )
-                      : (
-                        <Button
-                          modifiers={['white', 'ovalFill', 'uppercase', 'bold', 'shadow']}
-                          type="submit"
-                          handleClick={handleSetConfirmComment}
-                        >
-                          {translate.btnEdit}
-                        </Button>
-                      )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      )}
-    </Modal>
-  );
-};
-interface ParticipantReportModalProps {
-  isShow: boolean;
-  handleHideModal?: () => void;
-  activePhase: number | string;
-  dataAssessment: DataAssessmentCourseResponse;
-  handleReceiveComment?: () => void;
+
+        li {
+            display: block;
+            width: unset;
+            height: unset;
+            button {
+                width: 10px;
+                height: 10px;
+                background: $brand_blue_dark;
+                opacity: 1;
+                transition: 0.2s;
+                border-radius: 50%;
+                &:before {
+                    content: none;
+                }
+            }
+            &.slick-active {
+                button {
+                    width: 30px;
+                    border-radius: 5px;
+                    background: linear-gradient(
+                        90deg,
+                        #ff5f6d 0%,
+                        #ffc371 100%
+                    );
+                }
+            }
+        }
+    }
+  }
 }
-
-const ParticipantReportModal: React.FC<ParticipantReportModalProps> = ({
-  isShow,
-  handleHideModal,
-  activePhase,
-  dataAssessment,
-  handleReceiveComment,
-}) => {
-  const { t } = useTranslation(['footwear_course', 'button', 'placeholder']);
-  const [infoPhase, setInfoPhase] = useState<InfoPhase>();
-  const [phaseIdActive, setPhaseIdActive] = useState(activePhase);
-  const [isConfirmComment, setConfirmComment] = useState(false);
-  const [isCommentParticipant, setIsCommentParticipant] = useState(false);
-
-  const handleActivePhase = (phaseId: number | string): void => {
-    const infoPhaseActive: PhaseAssessment = dataAssessment
-      .listPhases.filter((item) => item.phasesTranslations[0].phaseId === phaseId)[0];
-    if (infoPhaseActive
-      && infoPhaseActive.accounts.length > 0
-      && infoPhaseActive.accounts[0].AccountPhasesModel.assessment
-    ) {
-      setPhaseIdActive(phaseId);
-      setInfoPhase({
-        nameExpert: `${infoPhaseActive.accounts[0].AccountPhasesModel.assessment.expert.firstName}
-         ${infoPhaseActive.accounts[0].AccountPhasesModel.assessment.expert.lastName}`,
-        commentExpert: infoPhaseActive.accounts[0].AccountPhasesModel
-          .assessment.expertComment ? infoPhaseActive.accounts[0].AccountPhasesModel
-            .assessment.expertComment : '',
-        dateComment: formatDate(infoPhaseActive.accounts[0]
-          .AccountPhasesModel.assessment.createdAt),
-        namePhase: infoPhaseActive.phasesTranslations[0].name,
-        phaseScore: infoPhaseActive.accounts[0].AccountPhasesModel
-          .assessment.avgScore,
-        startAssessment: formatDate(infoPhaseActive.accounts[0].AccountPhasesModel
-          .startDateOfAssessment),
-        endAssessment: formatDate(infoPhaseActive.accounts[0].AccountPhasesModel
-          .endDateOfAssessment),
-        img: infoPhaseActive.accounts[0].AccountPhasesModel.assessment
-          .expert.image,
-        dateOfBirth: infoPhaseActive.accounts[0].AccountPhasesModel
-          .assessment.expert.dob,
-        description: infoPhaseActive.accounts[0].AccountPhasesModel
-          .assessment.expert.intro || '',
-      });
-    }
-    if (phaseId === 'total'
-      && dataAssessment.isCompleted
-    ) {
-      setPhaseIdActive(phaseId);
-      setInfoPhase({
-        nameExpert: dataAssessment.expert
-          ? `${dataAssessment.expert.firstName} ${dataAssessment.expert.lastName}`
-          : '',
-        commentExpert: dataAssessment.expertFinalComment,
-        dateComment: '',
-        namePhase: 'Total',
-        phaseScore: dataAssessment.finalMark,
-        startAssessment: '',
-        endAssessment: '',
-        img: dataAssessment.expert ? dataAssessment.expert.image : '',
-        dateOfBirth: dataAssessment.expert ? dataAssessment.expert.dob : '',
-        description: dataAssessment.expert ? dataAssessment.expert.intro
-          : '',
-      });
-    }
-  };
-
-  const handleChangeTitleBtnComment = (): void => {
-    setIsCommentParticipant(!isCommentParticipant);
-  };
-
-  useEffect(() => {
-    setIsCommentParticipant(false);
-    setConfirmComment(false);
-    handleActivePhase(activePhase);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isShow, dataAssessment]);
-
-  return (
-    <RenderContent
-      isShow={isShow}
-      infoPhase={infoPhase}
-      translate={{
-        startDate: t('start_date'),
-        endDate: t('end_date'),
-        total: t('total'),
-        expertComment: t('expert_comment'),
-        participantComment: t('participant_comment'),
-        think: t('think'),
-        titleScore: t('title_score'),
-        btnCancel: t('button:cancel'),
-        btnConfirm: t('button:confirm'),
-        btnEdit: t('button:edit'),
-        report: t('report'),
-        examiner: t('examiner'),
-        criteria: t('criteria'),
-        placeholderEnterMessage: t('placeholder:enter_message'),
-      }}
-      dataAssessment={dataAssessment}
-      phaseIdActive={phaseIdActive}
-      isCommentParticipant={isCommentParticipant}
-      isConfirmComment={isConfirmComment}
-      handleHideModal={handleHideModal}
-      handleActivePhase={handleActivePhase}
-      handleChangeTitleBtnComment={handleChangeTitleBtnComment}
-      handleSetConfirmComment={(): void => setConfirmComment(false)}
-      handleReceiveComment={handleReceiveComment}
-    />
-  );
-};
-
-export default ParticipantReportModal;
