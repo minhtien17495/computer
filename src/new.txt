@@ -1,133 +1,358 @@
-import React from 'react';
-import { Container } from 'react-bootstrap';
-import Slider from 'react-slick';
+import React, { useRef, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
 
-import Heading from 'components/atoms/Heading';
-import CardCoursePayment from 'components/molecules/CardCoursePayment';
-import CourseImage from 'images/courses/course01.jpg';
+import postAcceptPolicy from 'apis/requests/acceptpolicy';
+import { postStartPhase } from 'apis/requests/detailcourse';
+import getEstimatePhase, { ResponseEstimatePhase } from 'apis/requests/estimate';
+import { getDataHomeCarousel, getDataHomeCourse } from 'apis/requests/home';
+import {
+  getListCourse, getDetailCourseSlug,
+} from 'apis/requests/listcourses';
+import Loading from 'components/atoms/Loading';
+import Herocarousel from 'components/molecules/Herocarousel';
+import AboutCourse from 'components/organisms/AboutCourse';
+import CarouselPartner from 'components/organisms/CarouselPartner';
+import CourseCarousel from 'components/organisms/CourseCarousel';
+import CourseListHome from 'components/organisms/CourseListHome';
+import CourseSupport from 'components/organisms/CourseSupport';
+import ModalShowError from 'components/organisms/ModalShowError';
+import ModalTermPolicy from 'components/organisms/ModalTermPolicy';
+import ProgramCarousel from 'components/organisms/ProgramCarousel';
+import TabBenefits from 'components/organisms/TabBenefits';
+import Layout from 'components/templates/Layout';
+import { smoothScrollTo } from 'function/func';
+import useWindowDimensions from 'hooks/useWindowDimensions';
+import { requestStartLoading, requestStopLoading } from 'reducers/loading/actions';
+import { requestHideModalError, requestShowModalError } from 'reducers/modalerror/action';
+import { DataListCoursesResponse } from 'reducers/pages/courses/types';
+import { getDataHomePageCarouselOnSuccess, requestGetDataHomePage } from 'reducers/pages/home/action';
+import {
+  AccountPolicy,
+  CourseTranslations,
+  DataCarouselsParner, DataHomeCarousel, DataTitle, ItemPhase,
+} from 'reducers/pages/home/types';
+import useSelector from 'selectors/useSelector';
 
-interface CourseListHomeProps {
-  title: string;
+type PhaseInfo = {
+  namePhase: string;
+  timeStartEstimate: string;
+  timeEndEstimate: string;
+  isPhaseCanNotStart: boolean;
+  phaseId: number;
+  index?: number;
+}
+interface State {
+  detail: string;
+}
+interface SectionAboutHomeProps{
+  dataHomeCarousel: DataHomeCarousel;
+  startAnimationBenefits?: boolean;
 }
 
-const dummyData = [
-  {
-    isActive: undefined,
-    status: undefined,
-    isDontPayment: true,
-    paymentDescription: 'description payment',
-  },
-  {
-    isDontPayment: undefined,
-    paymentDescription: undefined,
-    status: 'Activated',
-    isActive: false,
-  },
-  {
-    isDontPayment: true,
-    paymentDescription: 'description payment',
-    status: undefined,
-    isActive: undefined,
-  },
-  {
-    isDontPayment: undefined,
-    paymentDescription: undefined,
-    status: 'Activated',
-    isActive: false,
-  },
-  {
-    isDontPayment: undefined,
-    paymentDescription: undefined,
-    status: 'Activated',
-    isActive: true,
-  },
-  {
-    isDontPayment: undefined,
-    paymentDescription: undefined,
-    status: 'Activated',
-    isActive: false,
-  },
-];
-
-const CourseListHome: React.FC<CourseListHomeProps> = ({
-  title,
+const SectionAboutHome: React.FC<SectionAboutHomeProps> = ({
+  dataHomeCarousel,
+  startAnimationBenefits,
 }) => {
-  const settings = {
-    dots: true,
-    arrow: true,
-    swipe: true,
-    infinite: true,
-    slidesToShow: 5,
-    slidesToScroll: 5,
-    speed: 500,
-    responsive: [
-      {
-        breakpoint: 1365,
-        settings: {
-          slidesToShow: 4,
-          slidesToScroll: 4,
-        },
-      },
-      {
-        breakpoint: 1025,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 3,
-        },
-      },
-      {
-        breakpoint: 769,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 2,
-        },
-      },
-      {
-        breakpoint: 576,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 2,
-        },
-      },
-    ],
-  };
+  const dataHeroCarousel = dataHomeCarousel.page_meta_data;
+
+  const carousels = Object.values(
+    dataHomeCarousel.page_meta_data.home_slider_2.slider,
+  ) as DataCarouselsParner[];
+
+  const programs = [dataHomeCarousel.page_meta_data.section_program_6,
+    dataHomeCarousel.page_meta_data.section_program_7];
+
+  const benefits = dataHomeCarousel.page_meta_data.home_benefits_3;
+
   return (
-    <Container>
-      <div className="o-courseListHome">
-        <div className="o-courseListHome_heading">
-          <Heading
-            type="h2"
-            size="large-max"
-            modifiers={['gray', 'font-lato', 'uppercase']}
-          >
-            { title }
-          </Heading>
-        </div>
-        <div className="o-courseListHome_slider">
-          <div className="o-courseListHome_list">
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <Slider {...settings}>
-              {
-              dummyData.map((_, index) => (
-                <CardCoursePayment
-                  key={`item-${index.toString()}`}
-                  handleClick={() => console.log('set active')}
-                  status={_.status as ('Activated' | 'Published' | 'Unpublised' | undefined)}
-                  isDontPayment={_.isDontPayment}
-                  paymentDescription={_.paymentDescription}
-                  isActive={_.isActive}
-                  src={CourseImage}
-                  title="Bag and apparel"
-                  description="This is a short description of this course. It's will allow maximum 3 lines of the description."
-                />
-              ))
-              }
-            </Slider>
-          </div>
-        </div>
-      </div>
-    </Container>
+    <>
+      <Herocarousel dataHeroCarousel={dataHeroCarousel} />
+
+      <CarouselPartner carousels={carousels} />
+
+      <ProgramCarousel
+        programs={programs}
+      />
+
+      <TabBenefits
+        benefits={benefits}
+        startAnimationBenefits={startAnimationBenefits}
+      />
+    </>
+  );
+};
+type SectionAboutCourseProps={
+  course: DataDetailtCourse;
+  dataHomeCarousel: DataHomeCarousel;
+  handleEstimatePhase?: (phase: Phase, index: number) => void;
+}
+
+const SectionAboutCourse: React.FC<SectionAboutCourseProps> = ({
+  dataHomeCarousel,
+  handleEstimatePhase,
+  course,
+}) => {
+  const courseSupportRef: any = useRef();
+  const courseStructureRef: any = useRef();
+  const courseCarouselListRef: any = useRef();
+  const titles = Object.values(
+    dataHomeCarousel.page_meta_data.section_title_4.title,
+  ) as DataTitle[] | null | undefined;
+  const sectionAbout = dataHomeCarousel.page_meta_data.section_about_8;
+  const sectionStructure = dataHomeCarousel.page_meta_data.section_structure_9;
+  const sectionSupport = dataHomeCarousel.page_meta_data.section_support_10;
+  return (
+    <>
+      {/* About Course */}
+      <AboutCourse
+        titles={titles}
+        sectionAbout={sectionAbout}
+        aboutCourse={course && course.courseTranslations[0].about}
+        handleGoTo={(): void => smoothScrollTo(courseStructureRef.current.offsetTop, 1500)}
+      />
+
+
+      {/* Course Carousel */}
+      <div id="courseStructure" ref={courseStructureRef} />
+      <CourseCarousel
+        timeStartCourse={(course && course.startDate) || undefined}
+        refChild={courseCarouselListRef}
+        handleEstimatePhase={handleEstimatePhase}
+        titles={titles}
+        sectionStructure={sectionStructure}
+        accounts={(course && course.accounts) as AccountPolicy[]}
+        course={course && course.courseTranslations}
+        phases={course && course.phases}
+        handleGoTo={(): void => smoothScrollTo(courseSupportRef.current.offsetTop, 1500)}
+      />
+
+      {/* Course Support Carousel */}
+      <div id="courseSupport" ref={courseSupportRef} />
+      {/* <CourseSupport
+        courseManagement={course && course.courseTranslations[0].courseManagement}
+        courseFormats={course && course.courseTranslations[0].courseFormats}
+        supportAndAdvices={course && course.courseTranslations[0].supportAndAdvices}
+        suppliers={course && course.courseTranslations[0].suppliers}
+        // supportCourse={courses && courses.courseTranslations}
+        sectionSupport={sectionSupport}
+      /> */}
+    </>
   );
 };
 
-export default CourseListHome;
+const Home: React.FC = () => {
+  const { i18n } = useTranslation();
+  const owlClass = 'p-home';
+
+  const [listCourses, setListCourses] = useState<DataDetailtCourse[]>();
+  const [isAcceptTerm, setIsAcceptTerm] = useState(false);
+  const [isShowEstimateModal, setIsShowEstimateModal] = useState(false);
+  const [phaseEstimateInfo, setPhaseEstimateInfo] = useState<PhaseInfo>();
+  const [phaseWillStart, setPhaseWillStart] = useState<{ phase: Phase; index: number }>();
+  const [hrefTermConditionModal, setHrefTermConditionModal] = useState<{
+    hrefTermConditions?:
+    string; hrefPrivacy?: string;
+  }>();
+
+  const { width } = useWindowDimensions();
+  const [startAnimationBenefits, setStartAnimationBenefits] = useState(false);
+  const modalerror = useSelector((state) => state.modalerror);
+  const { loading } = useSelector((state) => state.loading);
+  // const { isSuccessAcceptPolicy } = useSelector((state) => state.acceptpolicy);
+
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+
+  const {
+    courses,
+  } = useSelector((state) => state.pages.home);
+
+  const handleEstimatePhase = (phase: Phase, index: number): void => {
+    setPhaseWillStart({
+      phase,
+      index,
+    });
+    if (!courses || !phase) return;
+
+    (async (): Promise<void> => {
+      dispatch(requestStartLoading());
+      try {
+        const res = await getEstimatePhase({
+          slugCourse: courses.courseTranslations[0].slug,
+          slugPhase: phase.phasesTranslations[0].slug,
+        }) as ResponseEstimatePhase;
+        if (index === 0 && courses.accounts.length === 0) {
+          setHrefTermConditionModal({
+            hrefTermConditions: '/',
+            hrefPrivacy: '/',
+          });
+        }
+        setPhaseEstimateInfo({
+          namePhase: phase.phasesTranslations[0].name,
+          timeStartEstimate: res.phases[0].estimateStartDate,
+          timeEndEstimate: res.phases[0].estimateEndDate,
+          isPhaseCanNotStart: false,
+          phaseId: phase.phasesTranslations[0].phaseId,
+          index,
+        });
+        dispatch(requestStopLoading());
+        setIsShowEstimateModal(true);
+      } catch (error) {
+        dispatch(requestShowModalError(error[0].code));
+        dispatch(requestStopLoading());
+      }
+    })();
+  };
+
+  const handleStartPhase = async (): Promise<void> => {
+    if (phaseEstimateInfo
+      && phaseEstimateInfo.index
+      && phaseEstimateInfo.index === 0
+      && !isAcceptTerm) {
+      return;
+    }
+    if (!phaseEstimateInfo) return;
+    try {
+      dispatch(requestStartLoading());
+      if (phaseEstimateInfo.index === 0 && courses) {
+        await postAcceptPolicy({ courseId: courses.courseTranslations[0].courseId });
+      }
+      await postStartPhase({ phaseId: phaseEstimateInfo.phaseId });
+      const dataCarousel = await getDataHomeCarousel();
+      const dataCourses = await getDataHomeCourse();
+      dispatch(getDataHomePageCarouselOnSuccess(dataCarousel, dataCourses));
+      dispatch(requestStopLoading());
+      setIsShowEstimateModal(false);
+      // if (
+      //   phaseWillStart
+      //   && courseCarouselListRef
+      //   && courseCarouselListRef.current
+      //   && courseCarouselListRef.current.triggerHandleChangePhase) {
+      //   courseCarouselListRef.current.triggerHandleChangePhase(
+      //     phaseWillStart.phase, phaseWillStart.index,
+      //   );
+      // }
+      if (hrefTermConditionModal) {
+        setHrefTermConditionModal({});
+      }
+    } catch (error) {
+      dispatch(requestStopLoading());
+      setIsShowEstimateModal(false);
+      dispatch(requestShowModalError(error[0].code));
+      if (hrefTermConditionModal) {
+        setHrefTermConditionModal({});
+      }
+    }
+  };
+
+  const handleHideModalError = (): void => {
+    dispatch(requestHideModalError());
+  };
+
+  const handleHideModal = (): void => {
+    if (hrefTermConditionModal) {
+      setHrefTermConditionModal({});
+    }
+    setIsShowEstimateModal(!isShowEstimateModal);
+  };
+  const [dataHomeCarousel, setDataHomeCarousel] = useState<DataHomeCarousel>();
+  const [detailtCourse, setDetailtCourse] = useState<DataDetailtCourse>();
+  const fetchListCourse = async (): Promise<void> => {
+    dispatch(requestStartLoading());
+    try {
+      const listCoursesResponse = await getListCourse();
+      const dataHomeCarouselResponse = await getDataHomeCarousel();
+      const detailResponse = await getDetailCourseSlug(
+        listCoursesResponse[0].courseTranslations[0].slug,
+      );
+      setDataHomeCarousel(dataHomeCarouselResponse);
+      setListCourses(listCoursesResponse);
+      setDetailtCourse(detailResponse);
+      dispatch(requestStopLoading());
+    } catch (error) {
+      dispatch(requestStopLoading());
+    }
+  };
+  useEffect(() => {
+    dispatch(requestGetDataHomePage());
+    fetchListCourse();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language, user]);
+
+  useEffect(() => {
+    const onMouseScroll = (): void => {
+      if ((width < 768 && window.scrollY >= 400 && window.scrollY <= 850)
+        || (width >= 768 && width <= 1024 && window.scrollY >= 1300 && window.scrollY <= 1500)
+        || (width > 1024 && window.scrollY > 1900 && window.scrollY <= 2600)) {
+        setStartAnimationBenefits(true);
+      }
+    };
+    window.addEventListener('scroll', onMouseScroll);
+
+    return (): void => {
+      setStartAnimationBenefits(false);
+      window.removeEventListener('scroll', onMouseScroll);
+    };
+  });
+
+  return (
+    <div className={owlClass}>
+      {/* Modal show error */}
+      {modalerror && modalerror.show
+      && (
+      <ModalShowError
+        codeError={modalerror.code}
+        isShowModalError={modalerror.show}
+        handleHideModalError={handleHideModalError}
+      />
+      )}
+
+      {/* Modal Estimate Phase */}
+      <ModalTermPolicy
+        isCheck={isAcceptTerm}
+        handleChangeCheck={(): void => setIsAcceptTerm(!isAcceptTerm)}
+        isShowModalTermPolicy={isShowEstimateModal}
+        type="startPhase"
+        phaseInfo={phaseEstimateInfo}
+        handleStartCourse={handleStartPhase}
+        handleHide={handleHideModal}
+        hrefTermConditions={hrefTermConditionModal && hrefTermConditionModal.hrefTermConditions}
+        hrefPrivacy={hrefTermConditionModal && hrefTermConditionModal.hrefPrivacy}
+      />
+
+      {/* loading */}
+      <Loading iShow={loading} />
+
+      <Layout>
+        {dataHomeCarousel
+        && (
+          <SectionAboutHome
+            dataHomeCarousel={dataHomeCarousel}
+            startAnimationBenefits={startAnimationBenefits}
+          />
+        )}
+
+        {/* Course List Home */}
+
+        {listCourses && (
+        <CourseListHome
+          title="SELECT YOUR INTERESTED COURSE"
+          data={listCourses}
+        />
+        )}
+
+        {detailtCourse && dataHomeCarousel
+         && (
+         <SectionAboutCourse
+           course={detailtCourse}
+           dataHomeCarousel={dataHomeCarousel}
+           handleEstimatePhase={handleEstimatePhase}
+         />
+         )}
+      </Layout>
+    </div>
+  );
+};
+
+export default Home;
