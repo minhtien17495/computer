@@ -16,3 +16,26 @@ $('.panelLottery .nav-link.tabItemPower').on('shown.bs.tab', function (event) {
     $itemPrevActive.attr('data-order',dataItemClick).css('order', dataItemClick);
     $(this).parent().attr('data-order',2).css('order',2);
 });
+
+
+
+
+
+
+function centerTabsItemWinnerCrousel() {
+    let index=1;
+    $('.nav-link.tabItemPower.active').parent().css('order',2);
+    $('.nav-link.tabItemPower').not('.active').each(function(){
+        $(this).parent().css('order',index);
+        index+=2;
+    });
+}
+
+centerTabsItemWinnerCrousel();
+
+$('.panelLottery .nav-link.tabItemPower').on('shown.bs.tab', function (event) {
+    const dataItemClick=$(this).parent().css('order');
+    const $itemPrevActive=$(event.relatedTarget).parent();
+    $itemPrevActive.css('order', dataItemClick);
+    $(this).parent().css('order',2);
+});
