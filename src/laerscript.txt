@@ -1,0 +1,63 @@
+import $ from 'jquery';
+
+$(() => {
+  const circleZero = $('#circle_0');
+  const circleOne = $('#circle_1');
+  const circleTwo = $('#circle_2');
+  const circleThree = $('#circle_3');
+
+  const textZero = $('.text_0');
+  const textOne = $('.text_1');
+  const textTwo = $('.text_2');
+  const textThree = $('.text_3');
+
+  const imageZero = $('#image_0');
+  const imageOne = $('#image_1');
+  const imageTwo = $('#image_2');
+  const imageThree = $('#image_3');
+
+  const layerZero = $('#layer_0');
+  const layerOne = $('#layer_1');
+  const layerTwo = $('#layer_2');
+  const layerThree = $('#layer_3');
+
+  const animation = setInterval(() => {
+    $('.t-highlightFacilities_circle').attr('width', 78);
+    setTimeout(() => {
+      clearInterval(animation);
+    }, 3000);
+  });
+
+  const hoverCircle = (
+    layer: JQuery<HTMLElement>,
+    circle: JQuery<HTMLElement>,
+    image: JQuery<HTMLElement>,
+    text: JQuery<HTMLElement>,
+  ) => {
+    layer.hover(() => {
+      text.addClass('t-highlightFacilities_show');
+      image.addClass('t-highlightFacilities_show');
+      circle.attr('opacity', 0);
+      const animation1 = setInterval(() => {
+        $('.t-highlightFacilities_circle').attr('width', 78);
+        setTimeout(() => {
+          clearInterval(animation1);
+        }, 3000);
+      });
+    }, () => {
+      text.removeClass('t-highlightFacilities_show');
+      image.removeClass('t-highlightFacilities_show');
+      circle.attr('opacity', 0.7);
+      const animation2 = setInterval(() => {
+        $('.t-highlightFacilities_circle').attr('width', 78);
+        setTimeout(() => {
+          clearInterval(animation2);
+        }, 3000);
+      });
+    });
+  };
+  hoverCircle(layerZero, circleZero, imageZero, textZero);
+  hoverCircle(layerOne, circleOne, imageOne, textOne);
+  hoverCircle(layerTwo, circleTwo, imageTwo, textTwo);
+  hoverCircle(layerThree, circleThree, imageThree, textThree);
+});
