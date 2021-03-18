@@ -1,41 +1,31 @@
-function centerTabsItemWinnerCrousel() {
-    console.log('run');
-    let index=1;
-    $('.nav-link.tabItemPower.active').parent().attr('data-order',2).css('order',2);
-    $('.nav-link.tabItemPower').not('.active').each(function(){
-        $(this).parent().attr('data-order',index).css('order',index);
-        index+=2;
+const handleScroll = () => {
+    const eleUl = document.querySelector(".o-slider_dots");
+    const eleLi = document.querySelector(".o-slider_dots .slick-active");
+    if (!eleLi || !eleUl) return;
+    const widthUl = eleUl.getBoundingClientRect().width;// get width element scroll
+    const xUl = eleUl.getBoundingClientRect().x;// get distance element scroll compared to x window
+    const widthLi = eleLi.getBoundingClientRect().width;// get width element active
+    const xLi = eleLi.getBoundingClientRect().x;// get distance element active compared to x window
+    const positionSrollUl = eleUl.scrollLeft;
+    const scrollX = xLi - xUl + widthLi / 2 + positionSrollUl - widthUl / 2;
+    eleUl.scroll({
+      left: scrollX,
+      behavior: "smooth",
     });
+  };
+  return (
+    <div className={mapModifiers("o-slider", modifiers)}>
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <ReactSlick afterChange={handleScroll} {...settings} asNavFor={asNavFor} ref={ref}>
+      
+      
+      .o-slider_dots {
+  display: flex !important;
+  flex-wrap: nowrap;
+  overflow: auto;
+  max-width: rem(130);
+  height: rem(30);
+  li {
+    flex-shrink: 0;
+  }
 }
-
-centerTabsItemWinnerCrousel();
-
-$('.panelLottery .nav-link.tabItemPower').on('shown.bs.tab', function (event) {
-    const dataItemClick=$(this).parent().data('order');
-    const $itemPrevActive=$(event.relatedTarget).parent();
-    $itemPrevActive.attr('data-order',dataItemClick).css('order', dataItemClick);
-    $(this).parent().attr('data-order',2).css('order',2);
-});
-
-
-
-
-
-
-function centerTabsItemWinnerCrousel() {
-    let index=1;
-    $('.nav-link.tabItemPower.active').parent().css('order',2);
-    $('.nav-link.tabItemPower').not('.active').each(function(){
-        $(this).parent().css('order',index);
-        index+=2;
-    });
-}
-
-centerTabsItemWinnerCrousel();
-
-$('.panelLottery .nav-link.tabItemPower').on('shown.bs.tab', function (event) {
-    const dataItemClick=$(this).parent().css('order');
-    const $itemPrevActive=$(event.relatedTarget).parent();
-    $itemPrevActive.css('order', dataItemClick);
-    $(this).parent().css('order',2);
-});
