@@ -1,111 +1,56 @@
-import { httpNode } from '../instance';
+import {
+  useState, useEffect, Dispatch, SetStateAction,
+} from 'react';
+import { useTranslation } from 'react-i18next';
+import { useHistory, useLocation } from 'react-router-dom';
 
-export interface ItemDocument {
-  title: string;
-  filename: string;
-  link: string;
-}
-export interface CourseTranslation {
-  courseManagement?: ItemDocument[];
-  courseFormats?: ItemDocument[];
-  supportAndAdvices: ItemDocument[];
-  suppliers: ItemDocument[];
-  id: number;
-  courseId: number;
-  locale: string;
-  name: string;
-  slug: string;
-  title: string;
-  description: string;
-  about: string;
-  support: string;
-}
+import { findPhaseActive } from 'function/func';
+import { getSlugPhase } from 'function/utils';
+import { Phase, DataDetailCourseResponse } from 'reducers/detailcourse/phase/types';
 
-export interface PhasesTranslation {
-  id: number;
-  phaseId: number;
-  locale: string;
-  name: string;
-  slug: string;
-  title: string;
-  description?: string;
-  video?: string;
-  titlePiece?: string;
-}
 
-export interface AccountPhasesModel {
-  id: number;
-  accountId: number;
-  phaseId: number;
-  startDate: string;
-  endDate: string;
-  startDateOfAssessment: string;
-  endDateOfAssessment?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Account {
-  id: number;
-  AccountPhasesModel: AccountPhasesModel;
-}
-
-export interface Phase {
-  id: number;
-  courseId: number;
-  image: string;
-  active: number;
-  startDate: string;
-  endDate: string;
-  duration: number;
-  displayOrder: number;
-  createdAt: string;
-  updatedAt: string;
-  phasesTranslations: PhasesTranslation[];
-  accounts: Account[];
-}
-export interface AccountCoursesModel {
-  id: number;
-  accountId: number;
-  expertId: number;
-  courseId: number;
-  status: number;
-  total: number;
-  comment: string;
-  participantCommentDate: string;
-  expertComment: string;
-  expertCommentDate: string;
-  accept: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AccountCourse {
-  id: number;
-  AccountCoursesModel: AccountCoursesModel;
-}
-
-export interface DataDetailtCourse {
-  id: number;
-  image: string;
-  active: number;
-  isHomepage: number;
-  displayOrder: number;
-  createdAt: string;
-  updatedAt: string;
-  startDate: string;
-  endDate: string;
-  courseTranslations: CourseTranslation[];
-  phases: Phase[];
-  accounts: AccountCourse[];
-}
-
-export const getListCourse = async (): Promise<DataDetailtCourse[]> => {
-  const response = await httpNode.get('course/homepages');
-  return response.data.data;
+const useActivePhase = (data: DataDetailCourseResponse|null): {phaseSelect: Phase|undefined;
+  setPhaseSelect: Dispatch<SetStateAction<Phase | undefined>>;} => {
+  const history = useHistory();
+  const location = useLocation<{phaseSlug: string}>();
+  const [phaseSelect, setPhaseSelect] = useState<Phase>();
+  const { i18n } = useTranslation();
+  useEffect(() => {
+    const setPhaseActiveEffect = (): void => {
+      if (!data) return;
+      if (data.phases.length === 0) {
+        history.push('/');
+      }
+      if (location.state && location.state.phaseSlug) {
+        const phaseActiveByLocation = data.phases.find((item) => getSlugPhase(i18n
+          .language, item) === location.state.phaseSlug);
+        if (phaseActiveByLocation) {
+          setPhaseSelect(phaseActiveByLocation);
+        }
+        return;
+      }
+      if (phaseSelect) {
+        const phaseActive = data.phases.find(
+          (item) => item.phasesTranslations[0].phaseId
+          === phaseSelect.phasesTranslations[0].phaseId,
+        );
+        if (phaseActive) {
+          setPhaseSelect(phaseActive);
+          return;
+        }
+      }
+      const phaseActive = findPhaseActive(data);
+      if (phaseActive) {
+        setPhaseSelect(phaseActive);
+      }
+    };
+    setPhaseActiveEffect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+  return {
+    phaseSelect,
+    setPhaseSelect,
+  };
 };
 
-export const getDetailCourseSlug = async (slug: string): Promise<DataDetailtCourse> => {
-  const response = await httpNode.get(`/course/${slug}/homepages`);
-  return response.data.data;
-};
+export default useActivePhase;
