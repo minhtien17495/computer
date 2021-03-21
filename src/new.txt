@@ -524,3 +524,4 @@ const FootwearCourse: React.FC = () => {
 };
 
 export default FootwearCourse;
+
