@@ -100,3 +100,14 @@
 }
 // transition: background-color 1s linear 2s, color 1s;
 // transition: property name | duration | timing function | delay
+
+
+
+type TranslateType={
+  locale: string;
+}
+const getTranslate = <T extends TranslateType>(lang: string, translates: T[]): T => {
+  const itemFind = translates.find((item) => item.locale === lang);
+  if (itemFind) return itemFind;
+  return translates[0];
+};
