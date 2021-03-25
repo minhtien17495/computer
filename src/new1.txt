@@ -1,56 +1,210 @@
-import {
-  useState, useEffect, Dispatch, SetStateAction,
-} from 'react';
-import { useTranslation } from 'react-i18next';
-import { useHistory, useLocation } from 'react-router-dom';
+/* eslint-disable no-undef */
+import React, { useRef, useEffect, useMemo, useState, useCallback } from "react";
 
-import { findPhaseActive } from 'function/func';
-import { getSlugPhase } from 'function/utils';
-import { Phase, DataDetailCourseResponse } from 'reducers/detailcourse/phase/types';
+import { childBread } from "assets/data/dummy";
+import Heading from "components/atoms/Heading";
+import Loading from "components/atoms/Loading";
+import NewLayout from "components/organisms/NewLayout";
+import NewsListContent from "components/templates/NewsListContent";
+import useInfiniteScroll from "hooks/useInfiniteScroll";
+import useScrollTop from "hooks/useScrollTop";
+import getPopularNewsService, { getCategoryNewsService } from "services/requests/news";
+import { useAppDispatch, useAppSelector } from "store";
+import { setEndLoading, setStartLoading } from "store/Loading";
 
+interface AdvertisingProps {
+    top: string;
+    bottom: string;
+}
 
-const useActivePhase = (data: DataDetailCourseResponse|null): {phaseSelect: Phase|undefined;
-  setPhaseSelect: Dispatch<SetStateAction<Phase | undefined>>;} => {
-  const history = useHistory();
-  const location = useLocation<{phaseSlug: string}>();
-  const [phaseSelect, setPhaseSelect] = useState<Phase>();
-  const { i18n } = useTranslation();
+interface TitleNews {
+    title: string;
+    index: number;
+}
+
+interface NewsOtherContainerProps {
+    pageTypes: "news" | "cooperation" | "newspaper";
+    advertising?: AdvertisingProps;
+}
+
+const useSrollViewMore = (slug:string, pageParams:number) => {
+  const [data, setData] = useState<NewsType[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [params, setParams] = useState({
+    limit: 5,
+    page: 0,
+  });
+
   useEffect(() => {
-    const setPhaseActiveEffect = (): void => {
-      if (!data) return;
-      if (data.phases.length === 0) {
-        history.push('/');
-      }
-      if (location.state && location.state.phaseSlug) {
-        const phaseActiveByLocation = data.phases.find((item) => getSlugPhase(i18n
-          .language, item) === location.state.phaseSlug);
-        if (phaseActiveByLocation) {
-          setPhaseSelect(phaseActiveByLocation);
-        }
-        return;
-      }
-      if (phaseSelect) {
-        const phaseActive = data.phases.find(
-          (item) => item.phasesTranslations[0].phaseId
-          === phaseSelect.phasesTranslations[0].phaseId,
+    const handleViewMore = async (slugCategory:string) => {
+      setLoading(true);
+      try {
+        const result = await getCategoryNewsService(
+          slugCategory, { ...params, page: pageParams },
         );
-        if (phaseActive) {
-          setPhaseSelect(phaseActive);
-          return;
-        }
-      }
-      const phaseActive = findPhaseActive(data);
-      if (phaseActive) {
-        setPhaseSelect(phaseActive);
+        setData([...data, ...result.data]);
+        setHasMore(result.meta.totalPages > result.meta.page);
+        setParams({ ...params, page: pageParams });
+      } finally {
+        setLoading(false);
       }
     };
-    setPhaseActiveEffect();
+    handleViewMore(slug);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
-  return {
-    phaseSelect,
-    setPhaseSelect,
-  };
+  }, [pageParams]);
+
+  return { data, loading, hasMore };
 };
 
-export default useActivePhase;
+const sortNewsList = (result: NewsType[]) => result.sort((a, b) => a.displayOrder - b.displayOrder);
+const NewsOtherContainer: React.FC<NewsOtherContainerProps> = ({
+  pageTypes, advertising,
+}) => {
+  const [popularNewsData, setPopularNewsData] = useState<NewsType[]>();
+  const [categoryNewsData, setCategoryNewsData] = useState<NewsType[]>([]);
+  const [sidebarStickyHeight, setSidebarStickyHeight] = useState <number | undefined>(0);
+  const [metaData, setMetaData] = useState<MetaResponse>({
+    totalPages: 0,
+    limit: 0,
+    total: 0,
+    page: 0,
+  });
+
+  const dispatch = useAppDispatch();
+  /**
+     * @summary triggerFetch to check fetching data form api
+     */
+  const [page, setPage] = useState(1);
+  const { isLoading } = useAppSelector((state) => state.loading);
+
+  useScrollTop();
+  async function fetchCategoryNews(slug:string, params?: CategoryNewsRequest) {
+    const result = await getCategoryNewsService(slug, params);
+    const newData = [...categoryNewsData, ...result.data];
+    setMetaData(result.meta);
+    setCategoryNewsData(sortNewsList(newData));
+  }
+
+  const [isFetch, setFetch] = useInfiniteScroll(
+    () => {
+      if (page < metaData?.totalPages) {
+        setPage(page + 1);
+        fetchCategoryNews("tin-tuc-su-kien", { limit: metaData.limit, page });
+        setFetch(false);
+      }
+    },
+    () => {
+      const footer = document.querySelector(".o-footer");
+      const advertisingBottom = document.querySelector(
+        ".o-newLayout_advertising-bottom",
+      );
+      const height = document.documentElement.offsetHeight
+                - (footer?.clientHeight || 0)
+                - (advertisingBottom?.clientHeight || 0);
+      const shouldBeFetch = height - window.pageYOffset - window.innerHeight;
+
+      if (shouldBeFetch > 100 || isFetch) return;
+
+      if (page < 2 && !isFetch) {
+        setFetch(true);
+      }
+    },
+  );
+  useEffect(() => {
+    async function fetchPopularNews(slug:string) {
+      dispatch(setStartLoading());
+      const result = await getPopularNewsService(slug);
+
+      setPopularNewsData(sortNewsList(result));
+      dispatch(setEndLoading());
+      const block = document.querySelector(".t-newsListContent_main");
+      setSidebarStickyHeight(block?.clientHeight);
+    }
+    switch (pageTypes) {
+      case "cooperation":
+        fetchPopularNews("ban-tin-tap-doan");
+        fetchCategoryNews("ban-tin-tap-doan");
+        break;
+      case "newspaper":
+        fetchPopularNews("ban-tin-tai-chinh");
+        fetchCategoryNews("ban-tin-tai-chinh");
+        break;
+      default:
+        fetchPopularNews("tin-tuc-su-kien");
+        fetchCategoryNews("tin-tuc-su-kien", { limit: metaData.limit, page: metaData.page });
+    }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const active: TitleNews = useMemo(() => {
+    switch (pageTypes) {
+      case "cooperation":
+        return {
+          title: "Bản tin tập đoàn",
+          index: 1,
+        };
+      case "newspaper":
+        return {
+          title: "Bản tin tài chính",
+          index: 2,
+        };
+      default:
+        return {
+          title: "Tin tức - sự kiện",
+          index: 0,
+        };
+    }
+  }, [pageTypes]);
+  const [pageParams, setPageParams] = useState(1);
+  const { data, loading, hasMore } = useSrollViewMore("tin-tuc-su-kien", pageParams);
+
+  const refObserver = useRef<IntersectionObserver>();
+
+  const callElementLast = useCallback((node:any) => {
+    if (loading) return;
+    if (refObserver.current) refObserver.current.disconnect();
+
+    refObserver.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPageParams(pageParams + 1);
+      }
+    }, { threshold: 1.0 });
+
+    if (node) refObserver.current.observe(node);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, loading]);
+
+  return isLoading ? <Loading iShow center /> : (
+    <>
+      <NewLayout
+        pages={childBread}
+        active={active.index}
+        imgHtmlTop={advertising?.top}
+        imgHtmlBottom={advertising?.bottom}
+
+      >
+        <div className="p-newsNovaGroup_title">
+          <Heading
+            type="h2"
+            modifiers={["spaceCadet", "700", "uppercase"]}
+          >
+            {active.title}
+          </Heading>
+        </div>
+        <div className="p-newsNovaGroup_content">
+          <NewsListContent
+            newsPopular={popularNewsData}
+            newsCategory={data}
+            loading={loading}
+            sidebarHeight={sidebarStickyHeight}
+            callRef={callElementLast}
+          />
+        </div>
+      </NewLayout>
+    </>
+  );
+};
+
+export default NewsOtherContainer;
