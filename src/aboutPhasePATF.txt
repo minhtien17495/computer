@@ -1,0 +1,566 @@
+/* eslint-disable react/jsx-props-no-spreading */
+import React, { useState } from 'react';
+import { Row, Col } from 'react-bootstrap';
+import Slider, { CustomArrowProps } from 'react-slick';
+
+import Button from 'components/atoms/Button';
+import Checkbox from 'components/atoms/Checkbox';
+import Heading from 'components/atoms/Heading';
+import Icon from 'components/atoms/Icon';
+import Link from 'components/atoms/Link';
+import Player from 'components/molecules/Player';
+import mapModifiers from 'function/mapModifier';
+
+interface FunctionAboutPhaseProps{
+  isShowAcceptPolicy?: boolean;
+  hrefPolicy?: string;
+  handleAcceptPolicy?: (isCheckPolicy: boolean) => void;
+  isShowButtonStartPhase?: boolean;
+  handleStartPhase?: () => void;
+  isShowButtonGotoPhase?: boolean;
+  handleGotoPhase?: () => void;
+}
+interface AboutPhaseProps extends FunctionAboutPhaseProps{
+  linkVideo: string;
+  description?: string|null;
+  title?: string;
+  positionPhase?: number;
+}
+export interface SliderProps {
+  ref?: React.MutableRefObject<Slider|null>;
+  listPhase?: AboutPhaseProps[];
+  handleNextSlider?: () => void;
+  handlePrevSlider?: () => void;
+  hrefPolicy?: string;
+  handleAcceptPolicy?: (isCheckPolicy: boolean) => void;
+}
+
+const FunctionAboutPhase: React.FC<FunctionAboutPhaseProps> = ({
+  isShowAcceptPolicy,
+  hrefPolicy,
+  handleAcceptPolicy,
+  isShowButtonStartPhase,
+  handleStartPhase,
+  isShowButtonGotoPhase,
+  handleGotoPhase,
+}) => {
+  const [checkBoxPolicy, setCheckBoxPolicy] = useState(false);
+  if (isShowAcceptPolicy) {
+    return (
+      <div className="o-functionAboutPhase">
+        <div className="o-functionAboutPhase_checkbox">
+          <Checkbox
+            checked={checkBoxPolicy}
+            name="checkbox"
+            id="check"
+            handleClick={(): void => setCheckBoxPolicy(!checkBoxPolicy)}
+            modifier="bg-white"
+          >
+            <span>
+              accept
+              <Link
+                href={hrefPolicy || '/'}
+                target="_blank"
+                rel="noopener noreferrer"
+                modifier={['fs-small', 'text-underline', 'white']}
+              >
+              term condiction
+              </Link>
+            </span>
+          </Checkbox>
+        </div>
+        <div className="o-functionAboutPhase_buttonAccept">
+          <Button
+            modifiers={[
+              'ovalFill',
+              'white',
+              'icon-leftSide',
+              'uppercase',
+              'bold',
+            ]}
+            handleClick={(): void => handleAcceptPolicy && handleAcceptPolicy(checkBoxPolicy)}
+          >
+              Accept policy
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  if (isShowButtonStartPhase) {
+    return (
+      <div className="o-functionAboutPhase o-functionAboutPhase-flex">
+        <Button
+          modifiers={[
+            'ovalFill',
+            'white',
+            'icon-leftSide',
+            'uppercase',
+            'bold',
+          ]}
+          handleClick={handleStartPhase}
+        >
+        Start Phase
+        </Button>
+      </div>
+    );
+  }
+  if (isShowButtonGotoPhase) {
+    return (
+      <div className="o-functionAboutPhase o-functionAboutPhase-flex">
+        <Button
+          modifiers={[
+            'ovalFill',
+            'white',
+            'icon-leftSide',
+            'uppercase',
+            'bold',
+          ]}
+          handleClick={handleGotoPhase}
+        >
+        Goto Phase
+        </Button>
+      </div>
+    );
+  }
+  return null;
+};
+
+const AboutPhase: React.FC<AboutPhaseProps> = ({
+  linkVideo,
+  description,
+  title,
+  positionPhase,
+  ...props
+}) => (
+  <div className="o-aboutPhase">
+    <div className={mapModifiers('o-aboutPhase_wrap', `${positionPhase}`)}>
+      <Row>
+        <Col lg={6}>
+          <div className="o-aboutPhase_left">
+            <div className="o-aboutPhase_left_title">
+              <div className="o-aboutPhase_left_iconTitle">
+                {positionPhase && positionPhase + 1}
+              </div>
+              <Heading
+                type="h2"
+                modifiers={['white', 'font-muli']}
+              >
+                {title}
+              </Heading>
+            </div>
+            <div className="o-aboutPhase_left_player">
+              <div className="o-aboutPhase_left_ratioPlayer">
+                <Player
+                  src={linkVideo}
+                />
+              </div>
+            </div>
+          </div>
+        </Col>
+        <Col lg={6}>
+          <div className="o-aboutPhase_right">
+            <div className="o-aboutPhase_right_ratioDescription">
+              <div className="o-aboutPhase_right_description">
+                <div
+                      // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: description || '' }}
+                  className="o-aboutPhase_right_description_text"
+                />
+              </div>
+            </div>
+            <FunctionAboutPhase
+              {...props}
+            />
+          </div>
+        </Col>
+      </Row>
+    </div>
+  </div>
+);
+
+interface NextArrowProps extends CustomArrowProps {
+  handleNextSlider?: () => void;
+}
+
+const NextArrow: React.FC<NextArrowProps> = ({
+  handleNextSlider,
+  className,
+}) => (
+  <div className={`o-sliderAboutPhase_arrowNext ${className}`}>
+    <Icon iconName="next-orange" onClick={handleNextSlider} />
+  </div>
+);
+
+interface PrevArrowProps extends CustomArrowProps{
+  handlePrevSlider?: () => void;
+}
+const PrevArrow: React.FC<PrevArrowProps> = ({
+  handlePrevSlider,
+  className,
+}) => (
+  <div className={`o-sliderAboutPhase_arrowPrev ${className}`}>
+    <Icon iconName="prev-orange" onClick={handlePrevSlider} />
+  </div>
+);
+
+export const SliderAboutPhase = React.forwardRef<Slider, SliderProps>((
+  {
+    listPhase,
+    handleNextSlider,
+    handlePrevSlider,
+    hrefPolicy,
+    handleAcceptPolicy,
+  }, ref,
+) => {
+  const settings = {
+    infinite: false,
+    dots: false,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: true,
+    nextArrow: <NextArrow handleNextSlider={handleNextSlider} />,
+    prevArrow: <PrevArrow handlePrevSlider={handlePrevSlider} />,
+  };
+  return (
+    <div className="o-sliderAboutPhase">
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <Slider {...settings} ref={ref}>
+        {listPhase
+        && listPhase.map((item, index) => (
+          <AboutPhase
+            key={`item-${index.toString()}`}
+            linkVideo={item.linkVideo}
+            description={item.description}
+            title={item.title}
+            positionPhase={index}
+            // logic function each phase
+            isShowAcceptPolicy={index === 0 || index === 1}
+            handleAcceptPolicy={handleAcceptPolicy}
+            isShowButtonGotoPhase={index === 3}
+            isShowButtonStartPhase={index === 2}
+            hrefPolicy={hrefPolicy}
+          />
+        ))}
+      </Slider>
+    </div>
+  );
+});
+
+export default AboutPhase;
+
+
+
+
+
+
+
+
+
+.o-aboutPhase{
+  width: 100%;
+  overflow: hidden;
+  &_wrap{
+    background-image: url(~images/course-structure/bg_research_innovation.png);
+    background-size: cover;
+    background-position: left top;
+    background-repeat: no-repeat;
+    padding-top: rem(50);
+    @include tablet-down {
+      background-image: none!important;
+    }
+    @include mobile-down{
+      padding-top: rem(20);
+    }
+    &-2 {
+      background-image: url(~images/course-structure/bg_refine.png);
+      .o-aboutPhase_right{
+        @include tablet-down {
+          background-image: url(~images/course-structure/bg_refine.png);
+        }
+      }
+    }
+    &-1 {
+      background-image: url(~images/course-structure/bg_decision.png);
+      .o-aboutPhase_right{
+        @include tablet-down {
+          background-image: url(~images/course-structure/bg_decision.png);
+        }
+      }
+    }
+    &-0 {
+      background-image: url(~images/course-structure/bg_research_innovation.png);
+      .o-aboutPhase_right{
+        @include tablet-down {
+          background-image: url(~images/course-structure/bg_research_innovation.png);
+        }
+      }
+    }
+    &-4 {
+      background-image: url(~images/course-structure/bg_finalize.png);
+      .o-aboutPhase_right{
+        @include tablet-down {
+          background-image: url(~images/course-structure/bg_finalize.png);
+        }
+      }
+    }
+    &-3 {
+      background-image: url(~images/course-structure/bg_infrastructure.png);
+      .o-aboutPhase_right{
+        @include tablet-down {
+          background-image: url(~images/course-structure/bg_infrastructure.png);
+        }
+      }
+    }
+  }
+
+  &_left{
+    padding:rem(23) rem(100) rem(135) rem(80);
+    @include break-max(1366px){
+      padding-right: rem(20);
+    }
+    @include desktop-down {
+      padding-left: rem(50);
+      padding-right: 0;
+    }
+    @include tablet-down {
+      padding: 0 rem(50);
+    }
+    @include mobile-down{
+      padding:0 rem(20)
+    }
+    &_title{
+      display: flex;
+      align-items: center;
+      @include tablet-down {
+        .a-heading{
+          color: $brand_blue-dark;
+        }
+      }
+    }
+    &_iconTitle{
+      width: rem(75);
+      height: rem(75);
+      font-size: rem(14);
+      flex-shrink: 0;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-image: url(~images/course-structure/bg_course_structure_on.svg);
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      @include mobile-down{
+        width: rem(50);
+        height: rem(50);
+      }
+    }
+    &_ratioPlayer{
+      height: 0;
+      padding-bottom:calc(403 / 661 * 100%);
+      position: relative;
+      .m-player{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+      }
+    }
+  }
+
+  &_right{
+    padding: rem(60) rem(100) rem(120) rem(50);
+    @include break-max(1366px){
+      padding-left: rem(50);
+    }
+    @include desktop-down {
+      padding-left: rem(30);
+      padding-right: rem(20)
+    }
+    @include tablet-down {
+      padding-top: rem(80) ;
+      padding-bottom: rem(80);
+      background-size: cover;
+      background-position: right top;
+      background-repeat: no-repeat;
+    }
+    @include mobile-down{
+      padding-top: rem(50) ;
+      padding-bottom: rem(50);
+    }
+    &_ratioDescription{
+      height: 0;
+      padding-bottom:calc(550 / 674 * 100%);
+      position: relative;
+      overflow: auto;
+      @include tablet-down {
+        padding-bottom: 0;
+        height: auto;
+        max-height: rem(550);
+      }
+      @include small-mobile{
+        max-height: rem(350);
+      }
+    }
+    &_description{
+      padding-right: rem(50);
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      @include desktop-down {
+        padding-right: rem(20);
+      }
+      @include tablet-down {
+        position: inherit;
+      }
+      &_text{
+        color: white;
+        font-size: rem(24);
+        line-height: rem(26);
+        *{
+          @include mobile-down {
+            color: white;
+            font-size: rem(14)!important;
+            line-height: rem(18)!important;
+          }
+        }
+      }
+    }
+  }
+}
+
+.o-sliderAboutPhase{
+  position: relative;
+  &_arrowPrev,
+  &_arrowNext{
+    z-index: 10;
+    width: auto;
+    height: auto;
+    position: absolute;
+    top: 50%;
+    left:rem(20);
+    transform: translateY(-50%);
+    cursor: pointer;
+    @include tablet-down {
+      display: none;
+    }
+  }
+  &_arrowNext{
+    left: auto;
+    right: rem(20);
+  }
+  .slick-arrow{
+    &::before{
+      display: none!important;
+    }
+  }
+}
+
+.o-functionAboutPhase{
+  margin-top: rem(10);
+  &-flex{
+    display: flex;
+    justify-content: center;
+  }
+  &_checkbox,
+  &_buttonAccept{
+    display: flex;
+    justify-content: center;
+    .a-checkbox{
+      width: auto;
+    }
+  }
+  &_buttonAccept{
+    margin-top: rem(10);
+  }
+}
+
+
+
+
+
+
+
+
+import { storiesOf } from '@storybook/react';
+import React, { useRef } from 'react';
+import Container from 'react-bootstrap/Container';
+import Slider from 'react-slick';
+
+import AboutPhase, { SliderAboutPhase } from '.';
+
+const dummyData = [{
+  title: 'Introduce',
+  linkVideo: 'https://patf-cms-dev.3forcom.net/storage/upload/media/Course/Footwear course/phase 1/Course-overview-VN.mp4',
+  description: 'Lorem ipsum dolor sit ame',
+},
+{
+  title: 'Marketing',
+  linkVideo: 'https://patf-cms-dev.3forcom.net/storage/upload/media/Course/Footwear course/phase 1/Course-overview-VN.mp4',
+  description: `Lorem ipsum dolor sit amet consectetur adipisicing elit.
+  Ratione reiciendis explicabo neque vitae totam assumenda facilis harum.
+  Fugit molestiae illum ducimus voluptatibus amet facere maxime ad ut nulla saepe,
+  labore rem, aut itaque. Deserunt mollitia sint sunt cumque distinctio amet dignissimos
+  odit molestiae inventore perferendis dicta maxime, consequatur incidunt laboriosam.
+  Lorem i Ratione reiciendis explicabo neque vitae totam assumenda facilis harum.
+  Fugit molestiae illum ducimus voluptatibus amet facere maxime ad ut nulla saepe,
+  labore rem, aut itaque. Deserunt mollitia sint sunt cumque distinctio amet dignissimos
+  odit molestiae inventore perferendis dicta maxime, consequatur incidunt laboriosam.
+  Lorem ipsum dolor sit amet consectetur adipisicing elit.
+  Ratione reiciendis explicabo neque vitae totam assumenda facilis harum.
+  Fugit molestiae illum ducimus voluptatibus amet facere maxime ad ut nulla saepe,
+  labore rem, aut itaque. Deserunt mollitia sint sunt cumque distinctio amet dignissimos
+  odit molestiae inventore perferendis dicta maxime, consequatur incidunt laboriosam.`,
+},
+{
+  title: 'Bussines',
+  linkVideo: 'https://patf-cms-dev.3forcom.net/storage/upload/media/Course/Footwear course/phase 1/Course-overview-VN.mp4',
+},
+{
+  title: 'Study',
+  linkVideo: 'https://patf-cms-dev.3forcom.net/storage/upload/media/Course/Footwear course/phase 1/Course-overview-VN.mp4',
+  description: `Lorem ipsum dolor sit amet consectetur adipisicing elit.
+  Ratione reiciendis explicabo neque vitae totam assumenda facilis harum.
+  Fugit molestiae illum ducimus voluptatibus amet facere maxime ad ut nulla saepe,
+  labore rem, aut itaque. Deserunt mollitia sint sunt cumque distinctio amet dignissimos
+  odit molestiae inventore perferendis dicta maxime, consequatur incidunt laboriosam.
+  Lorem i`,
+},
+];
+
+storiesOf('Components|organisms/AboutPhase', module).add('default', () => (
+  <Container>
+    <AboutPhase
+      positionPhase={0}
+      title="Marketing"
+      linkVideo="https://patf-cms-dev.3forcom.net/storage/upload/media/Course/Footwear course/phase 1/Course-overview-VN.mp4"
+      description="Lorem ipsum dolor sit amet consectetur adipisicing elit.
+      Ratione reiciendis explicabo neque vitae totam assumenda facilis harum.
+      Fugit molestiae illum ducimus voluptatibus amet facere maxime ad ut nulla saepe,
+      labore rem, aut itaque. Deserunt mollitia sint sunt cumque distinctio amet dignissimos
+      odit molestiae inventore perferendis dicta maxime, consequatur incidunt laboriosam.
+      Lorem ipsum dolor sit amet consectetur adipisicing elit.
+      Ratione reiciendis explicabo neque vitae totam assumenda facilis harum.
+      Fugit molestiae illum ducimus voluptatibus amet facere maxime ad ut nulla saepe,
+      labore rem, aut itaque. Deserunt mollitia sint sunt cumque distinctio amet dignissimos
+      odit molestiae inventore perferendis dicta maxime, consequatur incidunt laboriosam.
+      "
+    />
+  </Container>
+));
+storiesOf('Components|organisms/AboutPhase', module).add('Slider About Phase', () => {
+  const refSlider = useRef<Slider>(null);
+  return (
+    <Container>
+      <SliderAboutPhase
+        listPhase={dummyData}
+        ref={refSlider}
+        handlePrevSlider={() => refSlider.current && refSlider.current.slickPrev()}
+        handleNextSlider={() => refSlider.current && refSlider.current.slickNext()}
+      />
+    </Container>
+  );
+});
