@@ -1,0 +1,192 @@
+import { yupResolver } from '@hookform/resolvers';
+import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import * as yup from 'yup';
+
+import Input from 'components/atoms/Input';
+import Text from 'components/atoms/Text';
+import { InputPhoneHookForm } from 'components/molecules/InputPhone';
+import { PulldownHookForm } from 'components/molecules/PullDown';
+import FormContainer from 'components/organisms/FormContainer';
+import Modal from 'components/organisms/Modal';
+// import mapModifiers from 'function/mapModifier';
+
+interface BlockFeildProps{
+  titleSmall: string;
+}
+const BlockFeild: React.FC<BlockFeildProps> = ({
+  titleSmall, children,
+}) => (
+  <div className="o-blockFeild">
+    <div className="o-blockFeild_titleSmall">
+      <Text size="fs18-lg" weight="bold" modifiers={['brand-blue-dark']}>
+        {titleSmall}
+      </Text>
+    </div>
+    <div className="o-blockFeild_feild">
+      {children}
+    </div>
+  </div>
+);
+
+
+interface ModalRegistrationProps {
+  isShow: boolean;
+}
+const optionsPosition = [
+  { value: 'chocolate', label: 'Chocolate' },
+  { value: 'strawberry', label: 'Strawberry' },
+  { value: 'vanilla', label: 'Vanilla' },
+  { value: 'other', label: 'Other' },
+];
+const ModalRegistration: React.FC<ModalRegistrationProps> = ({
+  isShow,
+}) => {
+  const [isEnterPosition, setIsEnterPosition] = useState(false);
+  const { t } = useTranslation(['registration', 'button']);
+  const formSchema = yup.object().shape({
+    name: yup
+      .string()
+      .when('position', (position: {value: string; label: string}) => {
+        if (position && position.value === 'other') { return yup.string().required('Must enter email address'); }
+        return yup.string();
+      }),
+    // eslint-disable-next-line no-unused-vars
+    position: yup.lazy((_value) => {
+      if (isEnterPosition) {
+        return yup.string().required('enter text');
+      }
+      return yup.object().required('enter position');
+    }),
+    phone: yup
+      .string()
+      .required('Phone is required')
+      .min(10, 'The phone must be between 10 and 20 characters')
+      .max(20, 'The phone must be between 10 and 20 characters'),
+  });
+  const methods = useForm({
+    resolver: yupResolver(
+      formSchema,
+    ),
+  });
+  const watchPosition = methods.watch('position');
+  useEffect(() => {
+    if (watchPosition && watchPosition.value === 'other') {
+      setIsEnterPosition(true);
+    }
+  }, [watchPosition]);
+  return (
+    <Modal isShow={isShow} modifier="upload" size="lg">
+      <div className="o-modalRegistration">
+        <FormContainer
+          method={methods}
+          submitForm={(data): void => console.log(data)}
+        >
+          <div className="o-modalRegistration_row">
+            <BlockFeild titleSmall={t('first_name')}>
+              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('last_name')}>
+              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('dob')}>
+              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('email')}>
+              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('phone')}>
+              <InputPhoneHookForm
+                name="phone"
+              />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('gender')}>
+              <PulldownHookForm value={{ value: 'chocolate', label: 'Chocolate' }} options={optionsPosition} name="gender" />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('title')}>
+              <PulldownHookForm value={{ value: 'chocolate', label: 'Chocolate' }} options={optionsPosition} name="title" />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('College')}>
+              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('student_id')}>
+              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('Availability')}>
+              <PulldownHookForm value={{ value: 'chocolate', label: 'Chocolate' }} options={optionsPosition} name="Availability" />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('desired_position')}>
+              <PulldownHookForm handleClickCancel={() => setIsEnterPosition(false)} isEnterOther={isEnterPosition} options={optionsPosition} name="position" />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('address')}>
+              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+            </BlockFeild>
+            <BlockFeild titleSmall={t('language')}>
+              <PulldownHookForm value={{ value: 'chocolate', label: 'Chocolate' }} options={optionsPosition} name="language" />
+            </BlockFeild>
+          </div>
+          <div className="o-modalRegistration_info">
+            <div className="o-modalRegistration_row">
+              <BlockFeild titleSmall={t('password')}>
+                <Input type="password" name="fist_name" placeholder="*********" modifiers={['login', 'disabled-default']} />
+              </BlockFeild>
+              <BlockFeild titleSmall={t('re_password')}>
+                <Input type="password" name="fist_name" placeholder="*********" modifiers={['login', 'disabled-default']} />
+              </BlockFeild>
+            </div>
+          </div>
+          <button type="submit">Submit</button>
+        </FormContainer>
+      </div>
+    </Modal>
+  );
+};
+
+export default ModalRegistration;
+
+
+.o-modalRegistration{
+  width: 100%;
+  min-height: 30vh;
+  padding: rem(50) rem(138) rem(80) rem(138);
+  @include break-max(1280px){
+    padding-left: rem(70);
+    padding-right: rem(70);
+  }
+  @include tablet-down {
+    padding: rem(50);
+  }
+  @include small-mobile{
+    padding-left: rem(20);
+    padding-right: rem(20);
+  }
+  .o-modalRegistration_row{
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 rem(-77);
+    @include break-max(1280px){
+      margin: 0 rem(-20);
+    }
+  }
+}
+.o-blockFeild{
+  flex: 0 0 33.333%;
+  max-width: 33.333%;
+  padding: 0 rem(77);
+  margin-top: rem(20);
+  @include break-max(1280px){
+    padding: 0 rem(20);
+  }
+  @include tablet-down {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  @include small-mobile{
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  &_feild{
+    margin-top: rem(20);
+  }
+}
