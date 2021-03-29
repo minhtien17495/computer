@@ -1,0 +1,152 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable react/jsx-props-no-spreading */
+/* eslint-disable react/destructuring-assignment */
+import React from 'react';
+import { useFormContext, get, Controller } from 'react-hook-form';
+import Select, {
+  OptionsType, GroupedOptionsType, Props as SelectProps, components,
+} from 'react-select';
+
+import Icon from 'components/atoms/Icon';
+import Input from 'components/atoms/Input';
+import Text from 'components/atoms/Text';
+
+
+interface Props extends SelectProps {
+  options: OptionsType<any> | GroupedOptionsType<any>;
+  placeholder?: string;
+  isDisabled?: boolean;
+  error?: string;
+  name?: string;
+}
+
+const PullDown: React.FC<Props> = ({
+  name,
+  options,
+  isDisabled,
+  isSearchable,
+  error,
+  placeholder,
+  ...innerProps
+}) => {
+  const DropdownIndicator = (props: any) => (
+    <components.DropdownIndicator {...props}>
+      <Icon iconName={props.selectProps.menuIsOpen ? 'up-orange-small' : 'down-dark-small'} />
+    </components.DropdownIndicator>
+  );
+  const customStyles = {
+    control: (provided: any, state: any) => ({
+      ...provided,
+      padding: 0,
+      borderColor: error ? '#ff636d'
+        : (state.isFocused || state.isSelected) ? '#ffc371' : '#ddd',
+      outline: 'none',
+      boxShadow: 'none',
+      '&:hover': {
+        borderColor: 'none',
+      },
+    }),
+    // indicatorSeparator: () => ({ display: 'none' }),
+    option: (provided: any, state: any) => ({
+      ...provided,
+      borderBottom: '1px solid #ECF2F9',
+      color: '#8A9099',
+      padding: 10,
+      backgroundColor:
+        state.isFocused || state.isSelected ? '#f4f6fa' : 'transparent',
+      '&:active': {
+        backgroundColor: '#fafafa',
+      },
+    }),
+    singleValue: (provided: any) => ({
+      ...provided,
+      padding: '0',
+      lineHeight: '20px',
+      fontSize: '16px',
+      color: error ? '#ff636d' : '#8A9099',
+      fontWeight: '300',
+    }),
+    valueContainer: (provided: any) => ({
+      ...provided,
+      height: '44px',
+      padding: '0 20px',
+    }),
+    placeholder: (provided: any) => ({
+      ...provided,
+      lineHeight: '20px',
+      fontSize: '16px',
+      color: error ? '#ff636d' : 'rgba(112, 112, 112, 0.7)',
+      fontWeight: '300',
+    }),
+    container: (provided: any) => ({
+      ...provided,
+      borderRadius: '5px',
+      background: '#fff',
+      boxShadow: '0px 3px 10px rgba(92, 101, 114, 0.2)',
+    }),
+  };
+
+  return (
+    <div className="m-pulldown">
+      <Select
+        styles={customStyles}
+        name={name}
+        options={options}
+        placeholder={placeholder}
+        isDisabled={isDisabled}
+        components={{
+          DropdownIndicator,
+        }}
+        {...innerProps}
+      />
+      {error && (
+      <div className="a-pulldown_errormessage">
+        <Text size="fs12-lg" modifiers={['red-dark']}>
+          {error}
+        </Text>
+      </div>
+      )}
+    </div>
+  );
+};
+interface PulldownHookFormProps extends Props {
+  name: string;
+  isEnterOther?: boolean;
+  type?: string;
+  handleClickCancel?: () => void;
+}
+export const PulldownHookForm: React.FC<PulldownHookFormProps> = (
+  {
+    handleClickCancel, isEnterOther, type, name, ...props
+  },
+) => {
+  const { control, errors } = useFormContext();
+  const hasError: Record<string, string> = get(errors, `${name}`);
+  if (isEnterOther) {
+    return (
+      <Input
+        handleSearch={handleClickCancel}
+        modifiers={['search']}
+        name={name}
+        type={type || 'text'}
+      />
+    );
+  }
+  return (
+    <Controller
+      options={props.options}
+      control={control}
+      name={name}
+      defaultValue={props.value}
+      render={({ ...innerProps }) => (
+        <PullDown
+          error={hasError && hasError.message}
+          {...props}
+          {...innerProps}
+        />
+      )}
+    />
+  );
+};
+export default PullDown;
