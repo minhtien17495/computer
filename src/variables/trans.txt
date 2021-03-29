@@ -1,0 +1,41 @@
+ "registration": {
+    "first_name":"First Name*",
+    "last_name":"Last Name*",
+    "dob":"D.O.B*",
+    "email":"Email*",
+    "phone":"Phone Number*",
+    "gender":"Gender*",
+    "title":"Title",
+    "College":"College/Occupation",
+    "student_id":"Student ID",
+    "Availability":"Availability",
+    "desired_position":"Desired Position",
+    "address":"Address*",
+    "language":"Languages",
+    "password":"Password",
+    "re_password":"Re-type password",
+    "resgistration":"resgistration",
+    "account_info":"Account Information",
+    "register":"register"
+  }
+  
+    "registration":{
+     "first_name":"Tên",
+     "last_name":"Họ",
+     "dob":"Ngày sinh",
+     "email":"Email*",
+     "phone":"Số điện thoại",
+     "gender":"Giới tính*",
+     "title":"Title",
+     "College":"College/Occupation",
+     "student_id":"ID học sinh",
+     "Availability":"Availability",
+     "desired_position":"Desired Position",
+     "address":"Địa chỉ*",
+     "language":"Ngôn ngữ",
+     "password":"Mật khẩu",
+     "re_password":"Nhập lại mật khẩu",
+     "resgistration":"Đăng ký",
+     "account_info":"Thông tin",
+     "register":"Đăng ký"
+   }
