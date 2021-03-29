@@ -1,0 +1,63 @@
+/* eslint-disable react/jsx-props-no-spreading */
+import React, { useState } from 'react';
+import { Controller, get, useFormContext } from 'react-hook-form';
+import PhoneInput, { PhoneInputProps } from 'react-phone-number-input';
+
+import Text from 'components/atoms/Text';
+
+interface PhoneInputType extends PhoneInputProps{
+  error?: string;
+}
+const InputPhone: React.FC<PhoneInputType> = ({ error, ...props }) => (
+  <div className="m-inputPhone">
+    {error && (
+      <div className="m-inputPhone_errormessage">
+        <Text size="fs12-lg" modifiers={['red-dark']}>
+          {error}
+        </Text>
+      </div>
+    )}
+    <PhoneInput
+      {...props}
+      className="m-inputPhone_input"
+    />
+  </div>
+);
+interface InputPhoneHookFormProps extends Omit<PhoneInputType, 'value' | 'onChange'> {
+  name: string;
+}
+
+export const InputPhoneHookForm: React.FC<InputPhoneHookFormProps> = (
+  { name, ...props },
+) => {
+  const [value, setValue] = useState('');
+  const { control, errors } = useFormContext();
+  const hasError: Record<string, string> = get(errors, `${name}`);
+  return (
+    <Controller
+      render={({ ...innerProps }) => (
+        <InputPhone
+          {...props}
+          {...innerProps}
+          international
+          error={hasError && hasError.message}
+        />
+      )}
+      control={control}
+      value={value}
+      onChange={setValue}
+      name={name}
+      defaultValue=""
+    />
+  );
+};
+InputPhoneHookForm.defaultProps = {
+  countries: ['VN', 'US'],
+  defaultCountry: 'VN',
+};
+InputPhone.defaultProps = {
+  countries: ['VN', 'US'],
+  defaultCountry: 'VN',
+};
+
+export default InputPhone;
