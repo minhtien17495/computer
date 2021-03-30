@@ -26,7 +26,8 @@
  "student":"Enter Student ID...",
  "dob":"Enter your date of birth...",
  "title":"Select title",
- "college_occupation":"Enter College/Occupation.."
+ "college_occupation":"Enter College/Occupation..",
+ "enter_last_name":"Enter your last name"
  
   "availability":"Chọn availability",
   "lang":"Chọn ngôn ngữ",
@@ -36,4 +37,5 @@
   "student":"Nhập ID",
   "dob":"Nhập ngày sinh",
   "title":"Chọn title",
-  "college_occupation":"Nhập College/Occupation.."
+  "college_occupation":"Nhập College/Occupation..",
+  "enter_last_name":"Nhập họ"
