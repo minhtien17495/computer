@@ -12,13 +12,13 @@ import Icon from 'components/atoms/Icon';
 import Input from 'components/atoms/Input';
 import Text from 'components/atoms/Text';
 
-
-interface Props extends SelectProps {
+interface Props extends SelectProps{
   options: OptionsType<any> | GroupedOptionsType<any>;
   placeholder?: string;
   isDisabled?: boolean;
   error?: string;
   name?: string;
+  isMulti?: boolean;
 }
 
 const PullDown: React.FC<Props> = ({
@@ -28,6 +28,7 @@ const PullDown: React.FC<Props> = ({
   isSearchable,
   error,
   placeholder,
+  isMulti,
   ...innerProps
 }) => {
   const DropdownIndicator = (props: any) => (
@@ -47,7 +48,7 @@ const PullDown: React.FC<Props> = ({
         borderColor: 'none',
       },
     }),
-    // indicatorSeparator: () => ({ display: 'none' }),
+    indicatorSeparator: () => ({ display: 'none' }),
     option: (provided: any, state: any) => ({
       ...provided,
       borderBottom: '1px solid #ECF2F9',
@@ -71,6 +72,25 @@ const PullDown: React.FC<Props> = ({
       ...provided,
       height: '44px',
       padding: '0 20px',
+      display: isMulti ? 'flex' : provided.display,
+      flexWrap: isMulti ? 'nowrap' : provided.flexWrap,
+      overflow: isMulti ? 'auto' : provided.overflow,
+      '::-webkit-scrollbar': {
+        width: 2,
+        height: 4,
+      },
+      '::-webkit-scrollbar-track': {
+        background: '#fff',
+        borderRadius: 3,
+        marginLeft: 20,
+      },
+      '::-webkit-scrollbar-thumb': {
+        background: '#66666696',
+        borderRadius: 3,
+      },
+      '::-webkit-scrollbar-thumb:hover': {
+        background: '#666666',
+      },
     }),
     placeholder: (provided: any) => ({
       ...provided,
@@ -85,23 +105,29 @@ const PullDown: React.FC<Props> = ({
       background: '#fff',
       boxShadow: '0px 3px 10px rgba(92, 101, 114, 0.2)',
     }),
+    multiValue: (provided: any) => ({
+      ...provided,
+      flexShrink: 0,
+      maxWidth: 100,
+    }),
   };
 
   return (
     <div className="m-pulldown">
       <Select
+        {...innerProps}
         styles={customStyles}
         name={name}
         options={options}
         placeholder={placeholder}
         isDisabled={isDisabled}
+        isMulti={isMulti}
         components={{
           DropdownIndicator,
         }}
-        {...innerProps}
       />
       {error && (
-      <div className="a-pulldown_errormessage">
+      <div className="m-pulldown_errormessage">
         <Text size="fs12-lg" modifiers={['red-dark']}>
           {error}
         </Text>
@@ -126,8 +152,8 @@ export const PulldownHookForm: React.FC<PulldownHookFormProps> = (
   if (isEnterOther) {
     return (
       <Input
-        handleSearch={handleClickCancel}
-        modifiers={['search']}
+        handleClickIconCancel={handleClickCancel}
+        modifiers={['login', 'disabled-default', 'cancel']}
         name={name}
         type={type || 'text'}
       />
