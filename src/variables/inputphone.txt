@@ -4,12 +4,13 @@ import { Controller, get, useFormContext } from 'react-hook-form';
 import PhoneInput, { PhoneInputProps } from 'react-phone-number-input';
 
 import Text from 'components/atoms/Text';
+import mapModifiers from 'function/mapModifier';
 
 interface PhoneInputType extends PhoneInputProps{
   error?: string;
 }
 const InputPhone: React.FC<PhoneInputType> = ({ error, ...props }) => (
-  <div className="m-inputPhone">
+  <div className={mapModifiers('m-inputPhone', error && 'error')}>
     {error && (
       <div className="m-inputPhone_errormessage">
         <Text size="fs12-lg" modifiers={['red-dark']}>
@@ -40,6 +41,9 @@ export const InputPhoneHookForm: React.FC<InputPhoneHookFormProps> = (
           {...props}
           {...innerProps}
           international
+          autoComplete="off"
+          countryOptionsOrder={['VN', 'US']}
+          limitMaxLength
           error={hasError && hasError.message}
         />
       )}
@@ -52,11 +56,11 @@ export const InputPhoneHookForm: React.FC<InputPhoneHookFormProps> = (
   );
 };
 InputPhoneHookForm.defaultProps = {
-  countries: ['VN', 'US'],
+  // countries: ['VN', 'US'],
   defaultCountry: 'VN',
 };
 InputPhone.defaultProps = {
-  countries: ['VN', 'US'],
+  // countries: ['VN', 'US'],
   defaultCountry: 'VN',
 };
 
