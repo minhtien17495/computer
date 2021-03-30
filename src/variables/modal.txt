@@ -1,17 +1,24 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable no-unused-vars */
 import { yupResolver } from '@hookform/resolvers';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { isValidPhoneNumber } from 'react-phone-number-input';
 import * as yup from 'yup';
 
+import Button from 'components/atoms/Button';
+import Heading from 'components/atoms/Heading';
 import Input from 'components/atoms/Input';
 import Text from 'components/atoms/Text';
+import { DatePickerHookForm } from 'components/molecules/DatePicker';
 import { InputPhoneHookForm } from 'components/molecules/InputPhone';
 import { PulldownHookForm } from 'components/molecules/PullDown';
 import FormContainer from 'components/organisms/FormContainer';
 import Modal from 'components/organisms/Modal';
+import { locale } from 'function/utils';
+import languges from 'translation/languages.json';
 // import mapModifiers from 'function/mapModifier';
-
 interface BlockFeildProps{
   titleSmall: string;
 }
@@ -30,40 +37,136 @@ const BlockFeild: React.FC<BlockFeildProps> = ({
   </div>
 );
 
-
 interface ModalRegistrationProps {
   isShow: boolean;
+  languageVi?: boolean;
 }
+
+const optionsGender = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+];
+
+const optionsTitle = [
+  { value: 'college', label: 'College' },
+  { value: 'occupation', label: 'Occupation' },
+];
+
+const optionsLanguge = languges.map((item) => ({ value: item.code, label: item.name }));
+
 const optionsPosition = [
-  { value: 'chocolate', label: 'Chocolate' },
-  { value: 'strawberry', label: 'Strawberry' },
-  { value: 'vanilla', label: 'Vanilla' },
+  { value: 'Designer', label: 'Designer' },
+  { value: 'Development', label: 'Development' },
+  { value: 'Technical Development', label: 'Technical Development' },
+  { value: 'Material Development', label: 'Material Development' },
+  { value: 'Development', label: 'Development' },
+  { value: '2/3 D Computer Digital', label: '2/3 D Computer Digital' },
+  { value: 'Quality', label: 'Quality' },
+  { value: 'Production/Process', label: 'Production/Process' },
   { value: 'other', label: 'Other' },
 ];
+
+const optionsAvailability = [
+  { value: 'employed', label: 'Employed' },
+  { value: 'unemployed', label: 'Unemployed' },
+  { value: 'students', label: 'Students' },
+];
+
 const ModalRegistration: React.FC<ModalRegistrationProps> = ({
   isShow,
+  languageVi,
 }) => {
   const [isEnterPosition, setIsEnterPosition] = useState(false);
-  const { t } = useTranslation(['registration', 'button']);
+  const [isDisableId, setIsDisableId] = useState(true);
+  const oneLowercase = RegExp('(.*[a-z].*)');
+  const oneUppercase = RegExp('(.*[A-Z].*)');
+  const oneNumber = RegExp('(.*\\d.*)');
+  const oneSpecial = RegExp('[@$!%*#&]');
+  const { t } = useTranslation(['registration', 'placeholder', 'button', 'validation']);
   const formSchema = yup.object().shape({
-    name: yup
+    // name: yup
+    //   .string()
+    //   .when('position', (position: {value: string; label: string}) => {
+    //     if (position && position.value === 'other') { return yup.string().required('Must enter email address'); }
+    //     return yup.string();
+    //   }),
+    firstName: yup.string().required(t('validation:name_required')),
+    // availability: yup.lazy((_value) => {
+    //   if (typeof _value === 'string') {
+    //     return yup.string().required('enter text');
+    //   }
+    //   return yup.object().required('enter position');
+    // }),
+    dob: yup.lazy((_value) => {
+      if (typeof _value === 'string') {
+        return yup.string().required(t('validation:dob_required'));
+      }
+      return yup.mixed().required(t('validation:dob_required'));
+    }),
+    email: yup.string().email(t('validation:email_not_valid')).required(t('validation:email_required')),
+    contact: yup
       .string()
-      .when('position', (position: {value: string; label: string}) => {
-        if (position && position.value === 'other') { return yup.string().required('Must enter email address'); }
-        return yup.string();
-      }),
-    // eslint-disable-next-line no-unused-vars
+      .required(t('validation:phone_required')),
+    // contact: yup
+    //   .string()
+    //   .required(t('validation:phone_required'))
+    //   .test('test_length_greater_than_40', '', function (value) {
+    //     // your condition
+    //     if (value && value.toString().length > 40) {
+    //       console.log(value);
+    //       // setting the error message using the value's length
+    //       return this.createError({ message: `someErrorMessage ${value.toString().length}` });
+    //     }
+    //     return true;
+    //   }),
+    gender: yup.object().required(t('validation:gender_required')),
+    title: yup.object().required(t('validation:title_required')),
+    college: yup.string().required(t('validation:college_occupation_reuqired')),
+    student_id: yup.lazy((_value) => {
+      if (!isDisableId) {
+        return yup.string().required(t('validation:student_id_required'));
+      }
+      return yup.mixed();
+    }),
+    availability: yup.object().required(t('validation:availability_required')),
+    address: yup.string().required(t('validation:name_required')),
+    // dob: yup.lazy((_value) => {
+    //   console.log(_value);
+    //   if (_value) {
+    //     return yup.string().required('enter text');
+    //   }
+    //   return yup.mixed().required('enter text');
+    // }),
     position: yup.lazy((_value) => {
       if (isEnterPosition) {
-        return yup.string().required('enter text');
+        return yup.string().required(t('validation:position_required'));
       }
-      return yup.object().required('enter position');
+      return yup.object().required(t('validation:position_required'));
     }),
-    phone: yup
-      .string()
-      .required('Phone is required')
-      .min(10, 'The phone must be between 10 and 20 characters')
-      .max(20, 'The phone must be between 10 and 20 characters'),
+    language: yup.lazy((_value) => {
+      if (_value) {
+        return yup.array().required(t('validation:lang_required'));
+      }
+      return yup.mixed().required(t('validation:lang_required'));
+    }),
+    newPassword: yup.string()
+      .required(t('validation:new_password_required'))
+      .min(6, t('validation:password_min'))
+      .max(32, t('validation:password_max'))
+      .matches(oneLowercase, t('validation:onelowercase'))
+      .matches(oneUppercase, t('validation:oneuppercase'))
+      .matches(oneNumber, t('validation:onenumber'))
+      .matches(oneSpecial, t('validation:onespecial'))
+      .notOneOf([yup.ref('oldPassword')], t('validation:password_different')),
+    reNewPassword: yup.string()
+      .required(t('validation:new_password_required'))
+      .min(6, t('validation:password_min'))
+      .max(32, t('validation:password_max'))
+      .matches(oneLowercase, t('validation:onelowercase'))
+      .matches(oneUppercase, t('validation:oneuppercase'))
+      .matches(oneNumber, t('validation:onenumber'))
+      .matches(oneSpecial, t('validation:onespecial'))
+      .oneOf([yup.ref('newPassword')], t('validation:comfirm_password')),
   });
   const methods = useForm({
     resolver: yupResolver(
@@ -71,11 +174,18 @@ const ModalRegistration: React.FC<ModalRegistrationProps> = ({
     ),
   });
   const watchPosition = methods.watch('position');
+  const watchTitle = methods.watch('title');
   useEffect(() => {
     if (watchPosition && watchPosition.value === 'other') {
       setIsEnterPosition(true);
     }
   }, [watchPosition]);
+  useEffect(() => {
+    if (watchTitle && watchTitle.value === 'college') {
+      setIsDisableId(false);
+    }
+  }, [watchTitle]);
+
   return (
     <Modal isShow={isShow} modifier="upload" size="lg">
       <div className="o-modalRegistration">
@@ -83,60 +193,100 @@ const ModalRegistration: React.FC<ModalRegistrationProps> = ({
           method={methods}
           submitForm={(data): void => console.log(data)}
         >
+          <div className="o-modalRegistration_heading">
+            <Heading type="h3" modifiers={['center', 'brand-blue-dark', 'uppercase']} weight="bold" size="lg">
+              {t('resgistration')}
+            </Heading>
+          </div>
+          <div className="o-modalRegistration_personalTitle">
+            <Heading type="h3" modifiers={['cadet', 'uppercase']} weight="bold" size="md">
+              {t('personal_information')}
+            </Heading>
+          </div>
           <div className="o-modalRegistration_row">
             <BlockFeild titleSmall={t('first_name')}>
-              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+              <Input name="firstName" placeholder={t('placeholder:enter_name')} type="text" modifiers={['login', 'disabled-default']} />
             </BlockFeild>
             <BlockFeild titleSmall={t('last_name')}>
-              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+              <Input name="lastName" placeholder={t('placeholder:enter_last_name')} type="text" modifiers={['login', 'disabled-default']} />
             </BlockFeild>
             <BlockFeild titleSmall={t('dob')}>
-              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+              <DatePickerHookForm
+                dateFormat="dd/MM/yyyy"
+                placeholderText={t('placeholder:dob')}
+                maxDate={new Date()}
+                name="dob"
+                locale={languageVi ? locale as Locale : undefined}
+              />
             </BlockFeild>
             <BlockFeild titleSmall={t('email')}>
-              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+              <Input type="text" name="email" placeholder={t('placeholder:enter_email')} modifiers={['login', 'disabled-default']} />
             </BlockFeild>
             <BlockFeild titleSmall={t('phone')}>
               <InputPhoneHookForm
-                name="phone"
+                name="contact"
               />
             </BlockFeild>
             <BlockFeild titleSmall={t('gender')}>
-              <PulldownHookForm value={{ value: 'chocolate', label: 'Chocolate' }} options={optionsPosition} name="gender" />
+              <PulldownHookForm value={{ value: 'male', label: 'Male' }} options={optionsGender} name="gender" />
             </BlockFeild>
             <BlockFeild titleSmall={t('title')}>
-              <PulldownHookForm value={{ value: 'chocolate', label: 'Chocolate' }} options={optionsPosition} name="title" />
+              <PulldownHookForm placeholder={t('placeholder:title')} options={optionsTitle} name="title" />
             </BlockFeild>
             <BlockFeild titleSmall={t('College')}>
-              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+              <Input type="text" name="college" placeholder={t('placeholder:college_occupation')} modifiers={['login', 'disabled-default']} />
             </BlockFeild>
             <BlockFeild titleSmall={t('student_id')}>
-              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+              <Input disabled={isDisableId} type="text" name="student_id" placeholder={t('placeholder:student')} modifiers={['login', 'disabled-default']} />
             </BlockFeild>
             <BlockFeild titleSmall={t('Availability')}>
-              <PulldownHookForm value={{ value: 'chocolate', label: 'Chocolate' }} options={optionsPosition} name="Availability" />
+              <PulldownHookForm defaultValue={undefined} placeholder={t('placeholder:availability')} options={optionsAvailability} name="availability" />
             </BlockFeild>
             <BlockFeild titleSmall={t('desired_position')}>
-              <PulldownHookForm handleClickCancel={() => setIsEnterPosition(false)} isEnterOther={isEnterPosition} options={optionsPosition} name="position" />
+              <PulldownHookForm
+                placeholder={t('placeholder:position')}
+                handleClickCancel={() => setIsEnterPosition(false)}
+                isEnterOther={isEnterPosition}
+                options={optionsPosition}
+                name="position"
+                defaultValue={undefined}
+              />
             </BlockFeild>
             <BlockFeild titleSmall={t('address')}>
-              <Input type="text" name="fist_name" placeholder="Enter your name" modifiers={['login', 'disabled-default']} />
+              <Input type="text" name="address" placeholder={t('placeholder:address')} modifiers={['login', 'disabled-default']} />
             </BlockFeild>
             <BlockFeild titleSmall={t('language')}>
-              <PulldownHookForm value={{ value: 'chocolate', label: 'Chocolate' }} options={optionsPosition} name="language" />
+              <PulldownHookForm defaultValue={undefined} isClearable={false} isMulti isSearchable placeholder={t('placeholder:lang')} options={optionsLanguge} name="language" />
             </BlockFeild>
+          </div>
+          <div className="o-modalRegistration_personalTitle">
+            <Heading type="h3" modifiers={['cadet', 'uppercase']} weight="bold" size="md">
+              {t('account_info')}
+            </Heading>
           </div>
           <div className="o-modalRegistration_info">
             <div className="o-modalRegistration_row">
               <BlockFeild titleSmall={t('password')}>
-                <Input type="password" name="fist_name" placeholder="*********" modifiers={['login', 'disabled-default']} />
+                <Input type="password" name="newPassword" placeholder="*********" modifiers={['login', 'disabled-default']} />
               </BlockFeild>
               <BlockFeild titleSmall={t('re_password')}>
-                <Input type="password" name="fist_name" placeholder="*********" modifiers={['login', 'disabled-default']} />
+                <Input type="password" name="reNewPassword" placeholder="*********" modifiers={['login', 'disabled-default']} />
               </BlockFeild>
             </div>
           </div>
-          <button type="submit">Submit</button>
+          <div className="o-modalRegistration_button">
+            <Button
+              modifiers={[
+                'ovalFill',
+                'white',
+                'icon-leftSide',
+                'uppercase',
+                'bold',
+              ]}
+            >
+              {t('register')}
+            </Button>
+          </div>
         </FormContainer>
       </div>
     </Modal>
@@ -144,49 +294,3 @@ const ModalRegistration: React.FC<ModalRegistrationProps> = ({
 };
 
 export default ModalRegistration;
-
-
-.o-modalRegistration{
-  width: 100%;
-  min-height: 30vh;
-  padding: rem(50) rem(138) rem(80) rem(138);
-  @include break-max(1280px){
-    padding-left: rem(70);
-    padding-right: rem(70);
-  }
-  @include tablet-down {
-    padding: rem(50);
-  }
-  @include small-mobile{
-    padding-left: rem(20);
-    padding-right: rem(20);
-  }
-  .o-modalRegistration_row{
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 rem(-77);
-    @include break-max(1280px){
-      margin: 0 rem(-20);
-    }
-  }
-}
-.o-blockFeild{
-  flex: 0 0 33.333%;
-  max-width: 33.333%;
-  padding: 0 rem(77);
-  margin-top: rem(20);
-  @include break-max(1280px){
-    padding: 0 rem(20);
-  }
-  @include tablet-down {
-    flex: 0 0 50%;
-    max-width: 50%;
-  }
-  @include small-mobile{
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-  &_feild{
-    margin-top: rem(20);
-  }
-}
