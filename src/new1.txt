@@ -1,210 +1,259 @@
-/* eslint-disable no-undef */
-import React, { useRef, useEffect, useMemo, useState, useCallback } from "react";
+/* eslint-disable react/jsx-props-no-spreading */
+/* eslint-disable prefer-destructuring */
+/* eslint-disable react/no-array-index-key */
+import React, { memo, useState, useCallback, CSSProperties } from "react";
+import SingleInput from "./SingleInput";
+import './index.scss';
+export interface OTPInputProps {
+  length: number;
+  onChangeOTP: (otp: string) => any;
 
-import { childBread } from "assets/data/dummy";
-import Heading from "components/atoms/Heading";
-import Loading from "components/atoms/Loading";
-import NewLayout from "components/organisms/NewLayout";
-import NewsListContent from "components/templates/NewsListContent";
-import useInfiniteScroll from "hooks/useInfiniteScroll";
-import useScrollTop from "hooks/useScrollTop";
-import getPopularNewsService, { getCategoryNewsService } from "services/requests/news";
-import { useAppDispatch, useAppSelector } from "store";
-import { setEndLoading, setStartLoading } from "store/Loading";
+  autoFocus?: boolean;
+  isNumberInput?: boolean;
+  disabled?: boolean;
 
-interface AdvertisingProps {
-    top: string;
-    bottom: string;
+  style?: CSSProperties;
+  className?: string;
+
+  inputStyle?: CSSProperties;
+  inputClassName?: string;
 }
 
-interface TitleNews {
-    title: string;
-    index: number;
-}
+export function OTPInputComponent(props: OTPInputProps) {
+  const {
+    length,
+    isNumberInput,
+    autoFocus,
+    disabled,
+    onChangeOTP,
+    inputClassName,
+    inputStyle,
+    ...rest
+  } = props;
 
-interface NewsOtherContainerProps {
-    pageTypes: "news" | "cooperation" | "newspaper";
-    advertising?: AdvertisingProps;
-}
+  const [activeInput, setActiveInput] = useState(0);
+  const [otpValues, setOTPValues] = useState(Array<string>(length).fill(""));
 
-const useSrollViewMore = (slug:string, pageParams:number) => {
-  const [data, setData] = useState<NewsType[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [params, setParams] = useState({
-    limit: 5,
-    page: 0,
-  });
-
-  useEffect(() => {
-    const handleViewMore = async (slugCategory:string) => {
-      setLoading(true);
-      try {
-        const result = await getCategoryNewsService(
-          slugCategory, { ...params, page: pageParams },
-        );
-        setData([...data, ...result.data]);
-        setHasMore(result.meta.totalPages > result.meta.page);
-        setParams({ ...params, page: pageParams });
-      } finally {
-        setLoading(false);
-      }
-    };
-    handleViewMore(slug);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageParams]);
-
-  return { data, loading, hasMore };
-};
-
-const sortNewsList = (result: NewsType[]) => result.sort((a, b) => a.displayOrder - b.displayOrder);
-const NewsOtherContainer: React.FC<NewsOtherContainerProps> = ({
-  pageTypes, advertising,
-}) => {
-  const [popularNewsData, setPopularNewsData] = useState<NewsType[]>();
-  const [categoryNewsData, setCategoryNewsData] = useState<NewsType[]>([]);
-  const [sidebarStickyHeight, setSidebarStickyHeight] = useState <number | undefined>(0);
-  const [metaData, setMetaData] = useState<MetaResponse>({
-    totalPages: 0,
-    limit: 0,
-    total: 0,
-    page: 0,
-  });
-
-  const dispatch = useAppDispatch();
-  /**
-     * @summary triggerFetch to check fetching data form api
-     */
-  const [page, setPage] = useState(1);
-  const { isLoading } = useAppSelector((state) => state.loading);
-
-  useScrollTop();
-  async function fetchCategoryNews(slug:string, params?: CategoryNewsRequest) {
-    const result = await getCategoryNewsService(slug, params);
-    const newData = [...categoryNewsData, ...result.data];
-    setMetaData(result.meta);
-    setCategoryNewsData(sortNewsList(newData));
-  }
-
-  const [isFetch, setFetch] = useInfiniteScroll(
-    () => {
-      if (page < metaData?.totalPages) {
-        setPage(page + 1);
-        fetchCategoryNews("tin-tuc-su-kien", { limit: metaData.limit, page });
-        setFetch(false);
-      }
+  // Helper to return OTP from inputs
+  const handleOtpChange = useCallback(
+    (otp: string[]) => {
+      const otpValue = otp.join("");
+      onChangeOTP(otpValue);
     },
-    () => {
-      const footer = document.querySelector(".o-footer");
-      const advertisingBottom = document.querySelector(
-        ".o-newLayout_advertising-bottom",
-      );
-      const height = document.documentElement.offsetHeight
-                - (footer?.clientHeight || 0)
-                - (advertisingBottom?.clientHeight || 0);
-      const shouldBeFetch = height - window.pageYOffset - window.innerHeight;
-
-      if (shouldBeFetch > 100 || isFetch) return;
-
-      if (page < 2 && !isFetch) {
-        setFetch(true);
-      }
-    },
+    [onChangeOTP]
   );
-  useEffect(() => {
-    async function fetchPopularNews(slug:string) {
-      dispatch(setStartLoading());
-      const result = await getPopularNewsService(slug);
 
-      setPopularNewsData(sortNewsList(result));
-      dispatch(setEndLoading());
-      const block = document.querySelector(".t-newsListContent_main");
-      setSidebarStickyHeight(block?.clientHeight);
-    }
-    switch (pageTypes) {
-      case "cooperation":
-        fetchPopularNews("ban-tin-tap-doan");
-        fetchCategoryNews("ban-tin-tap-doan");
-        break;
-      case "newspaper":
-        fetchPopularNews("ban-tin-tai-chinh");
-        fetchCategoryNews("ban-tin-tai-chinh");
-        break;
-      default:
-        fetchPopularNews("tin-tuc-su-kien");
-        fetchCategoryNews("tin-tuc-su-kien", { limit: metaData.limit, page: metaData.page });
-    }
+  // Helper to return value with the right type: 'text' or 'number'
+  const getRightValue = useCallback(
+    (str: string) => {
+      let changedValue = str;
+      if (!isNumberInput) {
+        return changedValue;
+      }
+      return !changedValue || /\d/.test(changedValue) ? changedValue : "";
+    },
+    [isNumberInput]
+  );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Change OTP value at focussing input
+  const changeCodeAtFocus = useCallback(
+    (str: string) => {
+      const updatedOTPValues = [...otpValues];
+      updatedOTPValues[activeInput] = str[0] || "";
+      setOTPValues(updatedOTPValues);
+      handleOtpChange(updatedOTPValues);
+    },
+    [activeInput, handleOtpChange, otpValues]
+  );
+
+  // Focus `inputIndex` input
+  const focusInput = useCallback(
+    (inputIndex: number) => {
+      const selectedIndex = Math.max(Math.min(length - 1, inputIndex), 0);
+      setActiveInput(selectedIndex);
+    },
+    [length]
+  );
+
+  const focusPrevInput = useCallback(() => {
+    focusInput(activeInput - 1);
+  }, [activeInput, focusInput]);
+
+  const focusNextInput = useCallback(() => {
+    focusInput(activeInput + 1);
+  }, [activeInput, focusInput]);
+
+  // Handle onFocus input
+  const handleOnFocus = useCallback(
+    (index: number) => () => {
+      focusInput(index);
+    },
+    [focusInput]
+  );
+
+  // Handle onChange value for each input
+  const handleOnChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = getRightValue(e.currentTarget.value);
+      if (!val) {
+        e.preventDefault();
+        return;
+      }
+      changeCodeAtFocus(val);
+      focusNextInput();
+    },
+    [changeCodeAtFocus, focusNextInput, getRightValue]
+  );
+
+  // Hanlde onBlur input
+  const onBlur = useCallback(() => {
+    setActiveInput(-1);
   }, []);
 
-  const active: TitleNews = useMemo(() => {
-    switch (pageTypes) {
-      case "cooperation":
-        return {
-          title: "Bản tin tập đoàn",
-          index: 1,
-        };
-      case "newspaper":
-        return {
-          title: "Bản tin tài chính",
-          index: 2,
-        };
-      default:
-        return {
-          title: "Tin tức - sự kiện",
-          index: 0,
-        };
-    }
-  }, [pageTypes]);
-  const [pageParams, setPageParams] = useState(1);
-  const { data, loading, hasMore } = useSrollViewMore("tin-tuc-su-kien", pageParams);
-
-  const refObserver = useRef<IntersectionObserver>();
-
-  const callElementLast = useCallback((node:any) => {
-    if (loading) return;
-    if (refObserver.current) refObserver.current.disconnect();
-
-    refObserver.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPageParams(pageParams + 1);
+  // Handle onKeyDown input
+  const handleOnKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      switch (e.key) {
+        case "Backspace":
+        case "Delete": {
+          e.preventDefault();
+          if (otpValues[activeInput]) {
+            changeCodeAtFocus("");
+          } else {
+            focusPrevInput();
+          }
+          break;
+        }
+        case "ArrowLeft": {
+          e.preventDefault();
+          focusPrevInput();
+          break;
+        }
+        case "ArrowRight": {
+          e.preventDefault();
+          focusNextInput();
+          break;
+        }
+        case " ": {
+          e.preventDefault();
+          break;
+        }
+        default:
+          break;
       }
-    }, { threshold: 1.0 });
-
-    if (node) refObserver.current.observe(node);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMore, loading]);
-
-  return isLoading ? <Loading iShow center /> : (
-    <>
-      <NewLayout
-        pages={childBread}
-        active={active.index}
-        imgHtmlTop={advertising?.top}
-        imgHtmlBottom={advertising?.bottom}
-
-      >
-        <div className="p-newsNovaGroup_title">
-          <Heading
-            type="h2"
-            modifiers={["spaceCadet", "700", "uppercase"]}
-          >
-            {active.title}
-          </Heading>
-        </div>
-        <div className="p-newsNovaGroup_content">
-          <NewsListContent
-            newsPopular={popularNewsData}
-            newsCategory={data}
-            loading={loading}
-            sidebarHeight={sidebarStickyHeight}
-            callRef={callElementLast}
-          />
-        </div>
-      </NewLayout>
-    </>
+    },
+    [activeInput, changeCodeAtFocus, focusNextInput, focusPrevInput, otpValues]
   );
-};
 
-export default NewsOtherContainer;
+  const handleOnPaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      const pastedData = e.clipboardData
+        .getData("text/plain")
+        .trim()
+        .slice(0, length - activeInput)
+        .split("");
+      if (pastedData) {
+        let nextFocusIndex = 0;
+        const updatedOTPValues = [...otpValues];
+        updatedOTPValues.forEach((val, index) => {
+          if (index >= activeInput) {
+            const changedValue = getRightValue(pastedData.shift() || val);
+            if (changedValue) {
+              updatedOTPValues[index] = changedValue;
+              nextFocusIndex = index;
+            }
+          }
+        });
+        setOTPValues(updatedOTPValues);
+        setActiveInput(Math.min(nextFocusIndex + 1, length - 1));
+      }
+    },
+    [activeInput, getRightValue, length, otpValues]
+  );
+
+  return (
+    <div {...rest}>
+      {Array(length)
+        .fill("")
+        .map((_, index) => (
+          <SingleInput
+            key={`SingleInput-${index}`}
+            focus={activeInput === index}
+            value={otpValues && otpValues[index]}
+            autoFocus={autoFocus}
+            onFocus={handleOnFocus(index)}
+            onChange={handleOnChange}
+            onKeyDown={handleOnKeyDown}
+            onBlur={onBlur}
+            onPaste={handleOnPaste}
+            style={inputStyle}
+            className={inputClassName}
+            disabled={disabled}
+          />
+        ))}
+    </div>
+  );
+}
+
+const OTPInput = memo(OTPInputComponent);
+export default OTPInput;
+
+
+
+
+/* eslint-disable react/jsx-props-no-spreading */
+import React, { memo, useRef, useLayoutEffect } from "react";
+import usePrevious from "hooks/usePrevious";
+
+export interface SingleOTPInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  focus?: boolean;
+}
+
+export function SingleOTPInputComponent(props: SingleOTPInputProps) {
+  const { focus, autoFocus, ...rest } = props;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const prevFocus = usePrevious(!!focus);
+  useLayoutEffect(() => {
+    if (inputRef.current) {
+      if (focus && autoFocus) {
+        inputRef.current.focus();
+      }
+      if (focus && autoFocus && focus !== prevFocus) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    }
+  }, [autoFocus, focus, prevFocus]);
+
+  return <input ref={inputRef} {...rest} />;
+}
+
+const SingleOTPInput = memo(SingleOTPInputComponent);
+export default SingleOTPInput;
+
+
+
+import React, { useState } from 'react';
+import OTPInput from '.';
+import { storiesOf } from '@storybook/react';
+
+storiesOf('Components/Molecules/OTPInput', module).add('default', () => {
+    const [otp,setOtp]=useState<string>('');
+    return (
+        <div>
+            <OTPInput
+                autoFocus
+                isNumberInput
+                length={4}
+                className="otpContainer"
+                inputClassName="otpInput"
+                onChangeOTP={(otp) => setOtp(otp)}
+            />
+            <h2>
+                OTP : {otp}
+            </h2>
+        </div>
+    );
+});
