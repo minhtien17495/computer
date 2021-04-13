@@ -1,86 +1,211 @@
-{
-  "en": {
-    "placeholder_search": "Enter your search",
-    "change": "Change",
-    "mass": "Mass",
-    "purchase_volume": "Purchase volume",
-    "sales_volume": "Sales volume",
-    "stock_price_at": "Stock price at",
-    "from": "from",
-    "date": "Date",
-    "week":"Week",
-    "month": "Month",
-    "year": "Year",
-    "all":"All",
-    "price_updated_at":"Price updated at",
-    "buy":"Buy",
-    "sell":"Sell",
-    "next":"Next",
-    "recruitment":"Recruitment",
-    "enter_experience":"Please enter work experience",
-    "enter_company":"Please enter the nearest company",
-    "send":"Send",
-    "application_letter":"Application letter",
-    "full_name":"Full name",
-    "phone":"Phone",
-    "work_experience":"Work experience",
-    "nearest_company":"Nearest working company",
-    "attach_a_file":"Attach a file",
-    "part":"Part",
-    "position":"Position",
-    "have":"Have",
-    "result":"result",
-    "with_key":"with key",
-    "see_more":"See more",
-    "personnel":"Personnel",
-    "application_code":"Application code",
-    "unit":"Unit",
-    "expiration_date":"Expiration date",
-    "most_view":"Most view",
-    "same_category":"Same category",
-    "news":"News",
-    "download":"Download"
-  },
-  "vi": {
-    "placeholder_search": "Nhập nội dung tìm kiếm",
-    "change": "Thay đổi",
-    "mass": "Khối lượng",
-    "purchase_volume": "KL mua",
-    "sales_volume": "KL bán",
-    "stock_price_at": "Giá cổ phiếu tại",
-    "from": "Nguồn",
-    "date": "Ngày",
-    "week":"tuần",
-    "month": "Tháng",
-    "year": "Năm",
-    "all":"Tất cả",
-    "price_updated_at":"Giá cập nhật tại",
-    "but":"Mua",
-    "sell":"Bán",
-    "next":"Tiếp theo",
-    "recruitment":"Ứng tuyển",
-    "enter_experience":"Vui lòng nhập kinh nghiệm làm việc",
-    "enter_company":"Vui lòng nhập công ty gần nhất",
-    "send":"Gửi",
-    "application_letter":"Hồ sơ ứng tuyển",
-    "full_name":"Họ và tên",
-    "phone":"Điện thoại",
-    "work_experience":"Kinh nghiệm làm việc",
-    "nearest_company":"Công ty làm gần nhất",
-    "attach_a_file":"Đính kèm têp",
-    "part":"Bộ phận",
-    "position":"Vị trí",
-    "have":"Có",
-    "result":"Kết quả",
-    "with_key":"với từ khóa",
-    "see_more":"Xem thêm",
-    "personnel":"Nhân Sự",
-    "application_code":"Mã ứng tuyển",
-    "unit":"Đơn vị",
-    "expiration_date":"Ngày hết hạn",
-    "most_view":"Xem nhiều nhất",
-    "same_category":"Cùng chuyên mục",
-    "news":"Bản tin",
-    "download":"Tải"
-  }
+/* eslint-disable @typescript-eslint/camelcase */
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+
+import { cmsHttp } from 'apis/instance';
+import Image from 'components/atoms/Image';
+import Link from 'components/atoms/Link';
+import List from 'components/molecules/List';
+import { SystemResponse } from 'reducers/system/types';
+import useSelector from 'selectors/useSelector';
+
+type ChildFooterProps={
+  data: SystemResponse;
 }
+
+const ListSocial: React.FC<ChildFooterProps> = ({
+  data,
+}) => {
+  const [hoveredInstagram, setHoveredInstagram] = useState(false);
+  const toggleHoverInstagram = (): void => setHoveredInstagram(!hoveredInstagram);
+  const [hoveredPinterest, setHoveredPinterest] = useState(false);
+  const toggleHoverPinterest = (): void => setHoveredPinterest(!hoveredPinterest);
+  const [hoveredTwitter, setHoveredTwitter] = useState(false);
+  const toggleHoverTwitter = (): void => setHoveredTwitter(!hoveredTwitter);
+  const [hoveredFacebook, setHoveredFacebook] = useState(false);
+  const toggleHoverFacebook = (): void => setHoveredFacebook(!hoveredFacebook);
+
+  const checkLink = (url?: string|null): string => url || '#';
+  const checkTarget = (url?: string|null): string => (url ? '_blank' : '_self');
+
+  const owlClass = 'o-footer';
+
+  if (!data.instagram_logo.content
+    && !data.pinterest_logo.content
+    && !data.twitter_logo.content
+    && !data.facebook_logo.content) { return <></>; }
+
+  return (
+    <div className={`${owlClass}-social`}>
+      <List modifiers={['icon']}>
+        {data.instagram_logo.content && (
+        <li onMouseEnter={toggleHoverInstagram} onMouseLeave={toggleHoverInstagram}>
+          <Link
+            useRouterLink
+            target={checkTarget(data.instagram_url.content)}
+            href={checkLink(data.instagram_url.content)}
+          >
+            <span className={`${owlClass}-social-wrap`}>
+              <Image src={cmsHttp + data.instagram_logo.content} alt="icon social" />
+            </span>
+          </Link>
+        </li>
+        )}
+        {data.pinterest_logo.content && (
+        <li onMouseEnter={toggleHoverPinterest} onMouseLeave={toggleHoverPinterest}>
+          <Link
+            useRouterLink
+            target={checkTarget(data.pinterest_url.content)}
+            href={checkLink(data.pinterest_url.content)}
+          >
+            <span className={`${owlClass}-social-wrap`}>
+              <Image src={cmsHttp + data.pinterest_logo.content} alt="icon social" />
+            </span>
+          </Link>
+        </li>
+        )}
+        {data.twitter_logo.content && (
+        <li onMouseEnter={toggleHoverTwitter} onMouseLeave={toggleHoverTwitter}>
+          <Link
+            useRouterLink
+            target={checkTarget(data.twitter_url.content)}
+            href={checkLink(data.twitter_url.content)}
+          >
+            <span className={`${owlClass}-social-wrap`}>
+              <Image src={cmsHttp + data.twitter_logo.content} alt="icon social" />
+            </span>
+          </Link>
+        </li>
+        )}
+        {data.facebook_logo.content && (
+        <li onMouseEnter={toggleHoverFacebook} onMouseLeave={toggleHoverFacebook}>
+          <Link
+            useRouterLink
+            target={checkTarget(data.facebook_url.content)}
+            href={checkLink(data.facebook_url.content)}
+          >
+            <span className={`${owlClass}-social-wrap`}>
+              <Image src={cmsHttp + data.facebook_logo.content} alt="icon social" />
+            </span>
+          </Link>
+        </li>
+        )}
+      </List>
+    </div>
+  );
+};
+
+const LogoFooter: React.FC<ChildFooterProps> = ({
+  data,
+}) => {
+  const owlClass = 'o-footer';
+  if (!data.footer_logo.content) {
+    return <></>;
+  }
+  return (
+    <div className={`${owlClass}-logo`}>
+      <div className={`${owlClass}-logo-pc`}>
+        <Link
+          useRouterLink
+          href="/"
+        >
+          <Image src={cmsHttp + data.footer_logo.content} alt="Patf Logo" />
+        </Link>
+      </div>
+      <div className={`${owlClass}-logo-mobile`}>
+        <Link
+          useRouterLink
+          href="/"
+        >
+          <Image src={cmsHttp + data.footer_logo.content} alt="Patf Logo" />
+        </Link>
+      </div>
+    </div>
+  );
+};
+const Footer: React.FC = () => {
+  const { t } = useTranslation('header');
+  const owlClass = 'o-footer';
+
+  const { data } = useSelector((state) => state.system);
+
+  return (
+    <footer className={`${owlClass}`}>
+      <div className={`${owlClass}-top`}>
+        {data && <LogoFooter data={data} />}
+        <div className={`${owlClass}-menu`}>
+          <List modifiers={['horizontal']}>
+            <li>
+              <Link
+                useRouterLink
+                href="/"
+              >
+                {t('home').toUpperCase()}
+              </Link>
+            </li>
+            <li>
+              <Link
+                useRouterLink
+                href="/contact"
+              >
+                {t('contact').toUpperCase()}
+              </Link>
+            </li>
+          </List>
+        </div>
+        {data && <ListSocial data={data} />}
+        {
+        data && data.copyright.content
+          && (
+          <div className={`${owlClass}-text`}>
+            {data.copyright.content}
+          </div>
+          )
+        }
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
+
+
+import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+
+import mapModifiers from 'function/mapModifier';
+
+interface LinkProps {
+  rel?: string;
+  target?: string;
+  href: string;
+  children: React.ReactNode;
+  modifier?: ('text-underline'|'white'|'fs-small')[];
+  useRouterLink?: boolean;
+}
+
+const Link: React.FC<LinkProps> = ({
+  href,
+  children,
+  modifier,
+  target,
+  rel,
+  useRouterLink,
+}) => {
+  const owlClass = 'a-link';
+  if (useRouterLink && !href.includes('http')) {
+    return (
+      <RouterLink className={mapModifiers(owlClass, modifier)} to={href} rel={rel} target={target}>
+        {children}
+      </RouterLink>
+    );
+  }
+  return (
+    <a target={target} rel={rel} href={href} className={mapModifiers(owlClass, modifier)}>
+      {children}
+    </a>
+  );
+};
+
+export default Link;
