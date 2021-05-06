@@ -1,440 +1,57 @@
-import { yupResolver } from '@hookform/resolvers';
-import React, {
-  useEffect,
-  useState,
-  useRef,
-} from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
-import * as yup from 'yup';
-
-import { cmsHttp } from 'apis/instance';
-import {
-  uploadAvartar,
-  getProfile,
-  updateProfile,
-  updateProfileEmployer,
-} from 'apis/requests/profile';
-import Button from 'components/atoms/Button';
-import Heading from 'components/atoms/Heading';
-import Input from 'components/atoms/Input';
-import Text from 'components/atoms/Text';
-import Avatar from 'components/molecules/Avatar';
-import Textarea from 'components/molecules/Textarea';
-import Modal from 'components/organisms/Modal';
-import { formatDate } from 'function/func';
-import { checkUser } from 'function/utils';
-import { requestStartLoading, requestStopLoading } from 'reducers/loading/actions';
-import { ProfileResponse } from 'reducers/profile/types';
-import useSelector from 'selectors/useSelector';
-
-interface EditProfile {
-  intro: string;
-  technical?: string;
-  language?: string;
-  avatarUpload?: FileList;
-  contact?: string;
-  location?: string;
+.description {
+    position: absolute;
+    z-index: 5;
+    display: block;
+    padding: rem(5) rem(10);
+    margin: 0 auto;
+    font-size: rem(12);
+    font-weight: 300;
+    line-height: rem(18);
+    color: $darkLiver;
+    text-align: center;
+    pointer-events: none;
+    visibility: hidden;
+    background: $white;
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px #eee;
+    opacity: 0;
+    transition: transform 0.3s ease-in-out;
+    transform: translate(-50%, -50%) scale(0.5);
+    &.active {
+        visibility: visible;
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    &::after {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        margin-left: rem(-5);
+        content: '';
+        border-top: rem(5) solid $white;
+        border-right: rem(5) solid transparent;
+        border-left: rem(5) solid transparent;
+    }
 }
 
-type Props={
-  profileParticipant?: ProfileResponse;
-  isViewProfileParticipant?: boolean;
-}
-
-const ProfileForm: React.FC<Props> = ({
-  profileParticipant,
-  isViewProfileParticipant,
-}) => {
-  const { t } = useTranslation(['profile_account', 'button', 'validation']);
-  const schema = yup.object().shape({
-    contact: yup.lazy((value) => (!value ? yup.string() : yup.string().matches(/^[0-9]+$/, t('validation:phone_not_valid')))),
-  });
-  const user = useSelector((state) => state.auth.user);
-  const avatarUpload = useRef<HTMLInputElement | null>(null);
-  const [editData, setEditData] = useState<ProfileResponse | null>(null);
-  const [editInput, setEditInput] = useState(false);
-  const [showModalSuccess, setShowModalSuccess] = useState(false);
-  const [urlPreviewAvatar, setUrlPreviewAvatar] = useState('');
-  const dispatch = useDispatch();
-  const methods = useForm({
-    resolver: yupResolver<EditProfile>(schema),
-    mode: 'onChange',
-  });
-  const { isDirty, dirtyFields } = methods.formState;
-
-  const handleUploadAvatar = (): void => {
-    if (avatarUpload && avatarUpload.current) {
-      avatarUpload.current.click();
-    }
-  };
-
-  const filesSelected = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const fileList = e.target.files;
-    if (dirtyFields.avatarUpload && fileList) {
-      setUrlPreviewAvatar(`${URL.createObjectURL(fileList[0])}`);
-    }
-  };
-
-  const handleHideModal = (): void => {
-    setEditInput(() => {
-      setShowModalSuccess(false);
-      setUrlPreviewAvatar('');
-      return false;
-    });
-  };
-
-  const handleCancel = (): void => {
-    setEditInput(false);
-    setUrlPreviewAvatar('');
-    methods.reset();
-  };
-
-  const onHandleSubmitProfile = (profileform: EditProfile): void => {
-    if (isDirty) {
-      (async (): Promise<void> => {
-        try {
-          const {
-            intro, technical, language, contact, location,
-          } = dirtyFields;
-          dispatch(requestStartLoading());
-          if (user && user.type !== 3 && (intro || technical || language)) {
-            await updateProfile(profileform);
-          }
-          if (user && user.type === 3 && (contact || location || intro)) {
-            await updateProfileEmployer(profileform);
-          }
-          if (dirtyFields.avatarUpload && profileform && profileform.avatarUpload) {
-            const formPayload = new FormData();
-            formPayload.append('file', profileform.avatarUpload[0]);
-            await uploadAvartar(formPayload);
-          }
-          const dataProfile = await getProfile();
-          setEditData(dataProfile);
-          setShowModalSuccess(true);
-          methods.reset();
-          dispatch(requestStopLoading());
-        } catch (error) {
-          dispatch(requestStopLoading());
+const $description = $('.description');
+    const $svg = $('.s-overallGroundSection_svg');
+    $('#group1,#group2,#group3,#group4,#group5,#group6').hover(
+        function() {
+            const html = $(this).data('suggest');
+            $description.addClass('active');
+            $description.html(html);
+        },
+        function() {
+            $description.removeClass('active');
         }
-      })();
-    }
-  };
-
-  useEffect(() => {
-    if (profileParticipant) {
-      setEditData(profileParticipant);
-      return;
-    }
-    (async (): Promise<void> => {
-      const dataprofile = await getProfile();
-      setEditData(dataprofile);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <FormProvider {...methods}>
-      <form
-        className="t-profileform"
-        onSubmit={methods.handleSubmit(onHandleSubmitProfile)}
-      >
-        <div className="t-profileform_heading">
-          <Heading
-            weight="bold-lg"
-            type="h3"
-            modifiers={['font-lato', 'brand-blue-dark', 'center', 'uppercase']}
-          >
-            {t('profile')}
-          </Heading>
-        </div>
-        <div className="t-profileform_avatar">
-          <div className="t-profileform_avatar-img">
-            <Avatar
-              imageURL={(editInput && urlPreviewAvatar) ? (urlPreviewAvatar) || null
-                : (editData && editData.image) ? cmsHttp + editData.image : null}
-              lastName={editData && editData.lastName}
-              firstName={editData && editData.firstName}
-              isSizeTwoHundredSixty
-              numberBoder={0}
-              isEditing={editInput}
-              handleClick={handleUploadAvatar}
-            />
-            <input
-              name="avatarUpload"
-              type="file"
-              id="file"
-              accept="image/jpeg, image/png, image/jpg"
-              onChange={filesSelected}
-              ref={(e: HTMLInputElement | null): void => {
-                methods.register(e);
-                avatarUpload.current = e;
-              }}
-            />
-          </div>
-          <div className="t-profileform_avatar-description">
-            <div className="t-profileform_descripttion-wrap">
-              <div className="t-profileform_name">
-                <Text modifiers={['brand-blue-dark']} weight="bold">
-                  {editData && `${editData.firstName} ${editData.lastName}`}
-                </Text>
-              </div>
-              <div className="t-profileform_textarea">
-                {editData && editInput ? (
-                  <Textarea name="intro" defautValue={editData.intro} />
-                ) : (
-                  editData && (
-                  <Text modifiers={['brand-blue-dark']} size="xs">
-                    {editData.intro}
-                  </Text>
-                  )
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="t-profileform_content">
-          <div className="t-profileform_info">
-            <div className="t-profileform_block">
-              <Text modifiers={['brand-blue-dark']} weight="bold">
-                {t('name')}
-              </Text>
-              {editData && (
-                <Text modifiers={['cadet']} size="xs">
-                  {`${editData.firstName} ${editData.lastName}`}
-                </Text>
-              )}
-            </div>
-            <div className="t-profileform_two-block right-block">
-              <div className="t-profileform_block">
-                <Text modifiers={['brand-blue-dark']} weight="bold">
-                  D.O.B
-                </Text>
-                {editData && (
-                  <Text modifiers={['cadet']} size="xs">
-                    {formatDate(editData.dob)}
-                  </Text>
-                )}
-              </div>
-              <div className="t-profileform_block">
-                <Text modifiers={['brand-blue-dark']} weight="bold">
-                  {t('gender')}
-                </Text>
-                {editData && editData.gender && (
-                  <Text modifiers={['cadet']} size="xs">
-                    {editData.gender === 1 ? 'Male' : 'Female'}
-                  </Text>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="t-profileform_info">
-            {
-              checkUser(isViewProfileParticipant, (user && user.type)).occupation
-              && (
-              <div className="t-profileform_block">
-                <Text modifiers={['brand-blue-dark']} weight="bold">
-                  {t('occupation')}
-                </Text>
-                {editData && (
-                <Text modifiers={['cadet']} size="xs">
-                  {editData.occupation}
-                </Text>
-                )}
-              </div>
-              )
-            }
-            {
-              checkUser(isViewProfileParticipant, (user && user.type)).skills
-              && (
-              <div className="t-profileform_block right-block">
-                <Text modifiers={['brand-blue-dark']} weight="bold">
-                  {t('skills')}
-                </Text>
-                {editInput ? (
-                  <div className="t-profileform_block-language">
-                    <Input
-                      modifiers={['border-default', 'login', 'disabled-default']}
-                      type="text"
-                      placeholder={t('skills')}
-                      name="technical"
-                      defaultValue={editData && editData.technical}
-                    />
-                  </div>
-                ) : (
-                  editData && (
-                  <Text modifiers={['cadet']} size="xs">
-                    {editData.technical}
-                  </Text>
-                  )
-                )}
-              </div>
-              )
-            }
-          </div>
-          <div className="t-profileform_info">
-            <div className="t-profileform_block">
-              <Text modifiers={['brand-blue-dark']} weight="bold">
-                {t('location')}
-              </Text>
-              {editInput && user && user.type === 3 ? (
-                <div className="t-profileform_block-language">
-                  <Input
-                    modifiers={['border-default', 'login', 'disabled-default']}
-                    type="text"
-                    placeholder={t('location')}
-                    name="location"
-                    defaultValue={editData && editData.location}
-                  />
-                </div>
-              ) : (
-                editData && (
-                <Text modifiers={['cadet']} size="xs">
-                  {editData.location}
-                </Text>
-                )
-              )}
-            </div>
-            {
-             checkUser(isViewProfileParticipant, (user && user.type)).contact
-             && (
-             <div className="t-profileform_block right-block">
-               <Text modifiers={['brand-blue-dark']} weight="bold">
-                 {t('contact')}
-               </Text>
-               {editInput ? (
-                 <div className="t-profileform_block-language">
-                   <Input
-                     modifiers={['border-default', 'login', 'disabled-default']}
-                     type="text"
-                     placeholder={t('contact')}
-                     name="contact"
-                     defaultValue={editData ? editData.contact : ''}
-                   />
-                 </div>
-               ) : (
-                 editData && (
-                 <Text modifiers={['cadet']} size="xs">
-                   {editData.contact }
-                 </Text>
-                 )
-               )}
-             </div>
-             )
-           }
-            {
-             checkUser(isViewProfileParticipant, (user && user.type)).language
-             && (
-             <div className="t-profileform_block right-block">
-               <Text modifiers={['brand-blue-dark']} weight="bold">
-                 { t('language')}
-               </Text>
-               {editInput ? (
-                 <div className="t-profileform_block-language">
-                   <Input
-                     modifiers={['border-default', 'login', 'disabled-default']}
-                     type="text"
-                     placeholder={t('language')}
-                     name="language"
-                     defaultValue={editData ? editData.language : ''}
-                   />
-                 </div>
-               ) : (
-                 editData && (
-                 <Text modifiers={['cadet']} size="xs">
-                   {editData.language}
-                 </Text>
-                 )
-               )}
-             </div>
-             )
-           }
-          </div>
-        </div>
-        <div className="t-profileform_footer">
-          {editInput ? (
-            <div className="t-profileform_cancel">
-              <Button
-                modifiers={['ovalOutline', 'uppercase', 'bold', 'shadow']}
-                handleClick={handleCancel}
-                type="button"
-              >
-                {t('button:cancel')}
-              </Button>
-              <Button
-                modifiers={['white', 'ovalFill', 'uppercase', 'bold', 'shadow']}
-                type="submit"
-                disabled={!isDirty}
-              >
-                {t('button:save')}
-              </Button>
-            </div>
-          ) : (
-            (!isViewProfileParticipant && (
-            <Button
-              modifiers={['white', 'ovalFill', 'uppercase', 'bold', 'shadow']}
-              handleClick={(): void => setEditInput(true)}
-              type="button"
-            >
-              {t('button:edit')}
-            </Button>
-            ))
-          )}
-        </div>
-      </form>
-      <div className="t-accountform_wrapper">
-        <Modal isShow={showModalSuccess}>
-          <div className="t-accountform_modal">
-            <Text>{t('title_change_success')}</Text>
-            <Button
-              handleClick={handleHideModal}
-              modifiers={['white', 'ovalFill', 'uppercase', 'bold']}
-              type="button"
-            >
-              {t('button:cancel')}
-            </Button>
-          </div>
-        </Modal>
-      </div>
-    </FormProvider>
-  );
-};
-
-export default ProfileForm;
-
-
-
-export const checkUser = (isViewProfile?: boolean, type?: number|null): { occupation: boolean;
-  skills: boolean;
-  location: boolean;
-  contact: boolean;
-  language: boolean;} => {
-  if (isViewProfile) {
-    return {
-      occupation: true,
-      skills: true,
-      location: true,
-      contact: false,
-      language: true,
-    };
-  }
-  if (type === 3) {
-    return {
-      occupation: false,
-      skills: false,
-      location: true,
-      contact: true,
-      language: false,
-    };
-  }
-  return {
-    occupation: true,
-    skills: true,
-    location: true,
-    contact: false,
-    language: true,
-  };
-};
+    );
+    $('#group1,#group2,#group3,#group4,#group5,#group6').on('mousemove', function(e) {
+        const distance = $svg.offset().top - $(window).scrollTop();
+        $description.css({
+            left: `${e.clientX - $svg.offset() .left}px`,
+            top: `${e.clientY - distance - 30}px`,
+        });
+    });
