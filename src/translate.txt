@@ -1,215 +1,23 @@
-extends layouts/_layout_default
-mixin DotSlider 
-    .a-dotSlider
-        span.a-dotSlider_smallMain
-        span.a-dotSlider_small.a-dotSlider_smallStep1
-        span.a-dotSlider_small.a-dotSlider_smallStep2
-        span.a-dotSlider_small.a-dotSlider_smallStep3
-mixin CardSlider 
-    .s-cardSlider 
-        .s-cardSlider_image 
-            +imageRatio('https://vcdn-ngoisao.vnecdn.net/2021/01/29/tinh-y-1-8381-1611908480.jpg','card','354x472')
-        h3.s-cardSlider_title
-            |Cúc Tịnh Y 'kết đôi' Trương Triết Hạn
-        p.s-cardSlider_description 
-            |Trong 'Như Ý Phương Phi', mỹ nữ hot nhất Trung Quốc Cúc Tịnh Y và bạn diễn Trương Triết Hạn trở thành một cặp trai tài gái sắc, được khán giả yêu thích.
-
-block setting
-    - title = "3Forcom"
-    - ishomepage = true 
-
-block content 
-    section.s-utilities
-        include sections/_utilitiesSection
-    section.s-projectProgressSection
-        include sections/_projectProgressSection
-    section.s-library
-        include sections/_librarySection
-    .container.p-home_loading
-        .s-slider
-            each val in Array(12)
-                +CardSlider
-        
-
-
-
-
-/* Comment here */
-.p-home_loading {
-    padding: rem(50);
-    background-color: gray;
-}
-.s-slider {
-    .slick {
-        &-dots {
-            li {
-                width: auto;
-                button {
-                    display: none !important;
-                }
-                &:last-child {
-                    .a-dotSlider_small {
-                        display: none;
-                    }
-                }
-            }
+ useWindowResize(() => {
+    if (!refDropdown.current) return;
+    const haftWidthWindow = window.innerWidth / 2 - 100;
+    const isCompareWidth = refDropdown.current?.getBoundingClientRect().left > haftWidthWindow;
+    setPositionDropdown(isCompareWidth);
+  });
+  
+  .o-filterGroup {
+    margin: rem(10) 0 0 rem(-6);
+    .m-filterSelection {
+        margin-left: rem(6);
+        margin-top: rem(10);
+        @include mobile-down {
+            display: block;
+            width: 100%;
         }
-        &-list {
-            margin: 0 rem(-16);
-        }
-        &-slide {
-            padding: 0 rem(16);
-        }
-        &-active {
-            .a-dotSlider_smallMain::before {
-                width: rem(14);
-                height: rem(14);
-            }
-            .a-dotSlider_small {
-                animation-name: splash;
-                animation-duration: 0.2s;
-                animation-timing-function: linear;
-                &:nth-child(4) {
-                    animation-delay: 0.2s;
-                }
-                &:nth-child(3) {
-                    animation-name: splash1;
-                    animation-delay: 0.4s;
-                }
-                &:nth-child(2) {
-                    animation-name: splash2;
-                    animation-delay: 0.6s;
-                }
+        .m-filterSelection_text {
+            @include mobile-down {
+                justify-content: space-between;
             }
         }
     }
 }
-.a-dotSlider {
-    display: flex;
-    align-items: center;
-    &_smallMain {
-        position: relative;
-        display: block;
-        width: rem(8);
-        height: rem(8);
-        background-color: $white;
-        border-radius: 50%;
-        &::before {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: rem(5);
-            height: rem(5);
-            content: '';
-            border: 1px solid $white;
-            border-radius: 50%;
-            transition: 0.8s linear;
-            transform: translate(-50%, -50%);
-        }
-    }
-    &_small {
-        position: relative;
-        display: block;
-        width: rem(2);
-        height: rem(2);
-        margin-left: rem(8);
-        background-color: $white;
-        border-radius: 50%;
-        &::before {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: rem(1);
-            height: rem(1);
-            content: '';
-            background-color: $white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-    }
-}
-@keyframes splash {
-    from {
-        width: rem(1);
-        height: rem(1);
-        // opacity: 0;
-    }
-    to {
-        width: rem(4);
-        height: rem(4);
-        // opacity: 1;
-    }
-}
-@keyframes splash1 {
-    from {
-        width: rem(1);
-        height: rem(1);
-        // opacity: 0;
-    }
-    to {
-        width: rem(7);
-        height: rem(7);
-        // opacity: 1;
-    }
-}
-@keyframes splash2 {
-    from {
-        width: rem(1);
-        height: rem(1);
-        // opacity: 0;
-    }
-    to {
-        width: rem(9);
-        height: rem(9);
-        // opacity: 1;
-    }
-}
-
-
-
-$(() => {
-    $('.s-slider').on('init reInit', function() {
-        console.log('hehe');
-        $('.s-slider .slick-dots li').prepend('<div class="a-dotSlider"><span class="a-dotSlider_smallMain"></span><span class="a-dotSlider_small"></span> <span class="a-dotSlider_small"></span><span class="a-dotSlider_small"></span></div>');
-    });
-    let slide = 1;
-    $('.s-slider').on('afterChange', function(event, slick, currentSlide) {
-        console.log(currentSlide);
-        console.log('slide', slide);
-        if (slide !== currentSlide) slide = currentSlide;
-    });
-
-    $('.s-slider').slick({
-        accessibility: false,
-        infinite: false,
-        speed: 300,
-        slidesToShow: 3,
-        slidesToScroll: 3,
-        arrows: true,
-        dots: true,
-        // prevArrow: $(this).siblings('.cachchoi_slider_arrow-prev'),
-        // nextArrow: $(this).siblings('.cachchoi_slider_arrow-next'),
-        responsive: [
-            {
-                breakpoint: 800,
-                settings: {
-                    slidesToShow: 2,
-                    slidesToScroll: 1,
-                },
-            },
-            {
-                breakpoint: 575,
-                settings: {
-                    slidesToShow: 1,
-                    slidesToScroll: 1,
-                },
-            },
-        ],
-    });
-});
-// prepend(`<div class="a-dotSlider">
-//            <span class="a-dotSlider_smallMain"></span>
-//            <span class="a-dotSlider_small"></span>
-//            <span class="a-dotSlider_small"></span>
-//            <span class="a-dotSlider_small"></span>
-//            </div>`);
