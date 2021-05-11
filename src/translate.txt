@@ -1,23 +1,247 @@
- useWindowResize(() => {
-    if (!refDropdown.current) return;
-    const haftWidthWindow = window.innerWidth / 2 - 100;
-    const isCompareWidth = refDropdown.current?.getBoundingClientRect().left > haftWidthWindow;
-    setPositionDropdown(isCompareWidth);
-  });
-  
-  .o-filterGroup {
-    margin: rem(10) 0 0 rem(-6);
+/* eslint-disable react/jsx-props-no-spreading */
+import React, { ChangeEvent, useState } from "react";
+
+import Icon from "components/atoms/Icon";
+import Text from "components/atoms/Text";
+import FilterSelection from "components/molecules/FilterSelection";
+import {
+  CheckboxBlock, OptionItemProps, RangeBlock, RangeBlockProps,
+} from "components/templates/Search";
+import mapModifiers from "utils/functions";
+
+export interface ButtonFilterProps{
+  active?:boolean;
+  handleClick?:()=>void;
+}
+
+const WrapCollapse:React.FC = ({
+  children,
+}) => {
+  const [expand, setExpand] = useState(false);
+  return (
+    <div className={mapModifiers("m-wrapCollapse", expand && "expand")}>
+      <div onClick={() => setExpand(!expand)} className="m-wrapCollapse_toogle">
+        <Text modifiers={["white"]}>
+          Choose Filter
+        </Text>
+        <span />
+      </div>
+      <div className="m-wrapCollapse_content">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const ButtonFilter:React.FC<ButtonFilterProps> = ({
+  children,
+  active,
+  handleClick,
+}) => (
+  <button onClick={handleClick} className={mapModifiers("a-buttonFilter", active && "active")}>
+    <Text modifiers={["md-16x28", "700", "raisinBlack"]}>
+      {children}
+    </Text>
+    <Icon iconName="filter" />
+  </button>
+);
+
+export interface FilterGroupProps{
+  // agerange
+  ageOption:Omit<RangeBlockProps, "currentValue"|"handleChangeRange"> ;
+  currentAgeRange:number;
+  handleChangeAge?: (e: ChangeEvent<HTMLInputElement>) => void;
+  handleClickClearAge?:()=>void;
+  // checkbox
+  listOption?:OptionItemProps[];
+  handleChangeCheckbox?: (e: ChangeEvent<HTMLInputElement>, mainText:string) => void;
+  handleClickClearAll?:(mainText:string)=>void;
+  // Salary Range
+  salaryOption?:Omit<RangeBlockProps, "currentValue"|"handleChangeRange"> ;
+  currentSalary?:number;
+  handleChangeSalary?: (e: ChangeEvent<HTMLInputElement>) => void;
+  handleClearSalary?:()=>void;
+}
+const FilterGroup: React.FC<FilterGroupProps> = ({
+  ageOption,
+  currentAgeRange,
+  handleChangeAge,
+  handleClickClearAge,
+  listOption,
+  handleChangeCheckbox,
+  handleClickClearAll,
+  salaryOption,
+  currentSalary,
+  handleChangeSalary,
+  handleClearSalary,
+}) => (
+  <div className="o-filterGroup">
+    <WrapCollapse>
+      <FilterSelection active={currentAgeRange !== ageOption.default} handleClickClearAll={handleClickClearAge} variant="single" arrowMainText mainText="Age Range">
+        <RangeBlock
+          {...ageOption}
+          handleChangeRange={handleChangeAge}
+          currentValue={currentAgeRange}
+        />
+      </FilterSelection>
+      {
+       listOption?.map((item, index) => (
+         <FilterSelection
+           key={`filterItem-${index.toString()}`}
+           variant="single"
+           arrowMainText
+           mainText={item.mainText}
+           handleClickClearAll={() => handleClickClearAll && handleClickClearAll(item.mainText)}
+           active={item.listCheckbox.some((box) => box.check === true)}
+         >
+           <CheckboxBlock
+             handleChangeCheckbox={
+                (e: ChangeEvent<HTMLInputElement>) => {
+                  if (handleChangeCheckbox) handleChangeCheckbox(e, item.mainText);
+                }
+              }
+             listCheckbox={item.listCheckbox}
+           />
+         </FilterSelection>
+       ))
+    }
+      {salaryOption && currentSalary && (
+        <FilterSelection active={currentSalary !== salaryOption.default} handleClickClearAll={handleClearSalary} variant="single" arrowMainText mainText="Current salary range">
+          <RangeBlock
+            {...salaryOption}
+            handleChangeRange={handleChangeSalary}
+            currentValue={currentSalary}
+          />
+        </FilterSelection>
+      )}
+      <ButtonFilter>More Filters</ButtonFilter>
+    </WrapCollapse>
+  </div>
+);
+
+export default FilterGroup;
+
+.o-filterGroup {
+    margin: rem(10) 0 0 rem(-12);
+    @include break-max(1366) {
+        margin: rem(10) 0 0 rem(-6);
+    }
+    @include mobile-down {
+        margin-left: 0;
+    }
     .m-filterSelection {
-        margin-left: rem(6);
+        margin-left: rem(12);
         margin-top: rem(10);
         @include mobile-down {
             display: block;
             width: 100%;
         }
+        @include break-max(1366) {
+            margin-left: rem(6);
+        }
+        @include mobile-down {
+            margin-left: 0;
+        }
         .m-filterSelection_text {
             @include mobile-down {
                 justify-content: space-between;
             }
+        }
+    }
+}
+
+.a-buttonFilter {
+    appearance: none;
+    margin: rem(10) 0 0 rem(12);
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    border-radius: rem(50);
+    border: none;
+    padding: rem(7) rem(20);
+    position: relative;
+    background-color: $white;
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 1px solid $dimGray;
+        pointer-events: none;
+        border-radius: rem(50);
+    }
+    @include break-max(1366) {
+        margin-left: rem(6);
+    }
+    @include mobile-down {
+        margin-left: 0;
+    }
+    .a-text {
+        margin-right: rem(10);
+    }
+    &-active {
+        background-color: $snow;
+        &::after {
+            border: 2px solid $raisinBlack;
+        }
+    }
+}
+
+.m-wrapCollapse {
+    @include mobile-down {
+        overflow: hidden;
+    }
+    &-expand {
+        overflow: unset;
+        .m-wrapCollapse_content {
+            max-height: 90vh;
+            visibility: visible;
+            opacity: 1;
+        }
+        .m-wrapCollapse_toogle {
+            span::before {
+                transform: rotate(0);
+            }
+        }
+    }
+    &_toogle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: $raisinBlack;
+        padding: rem(10) rem(20);
+        @include mobile-up {
+            display: none;
+        }
+        span {
+            display: block;
+            width: rem(12);
+            height: rem(2);
+            background-color: $white;
+            position: relative;
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: $white;
+                transform: rotate(90deg);
+                transition: 0.3s linear;
+            }
+        }
+    }
+    &_content {
+        @include mobile-down {
+            height: 100%;
+            max-height: 0;
+            transition: 0.3s linear;
+            visibility: hidden;
+            opacity: 0;
         }
     }
 }
