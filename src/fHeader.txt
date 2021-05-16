@@ -1,0 +1,463 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
+import React, { useState } from "react";
+import { useHistory, useLocation } from "react-router-dom";
+
+import dummyData from "assets/data/header";
+import Logo from "assets/images/logo.svg";
+import Heading from "components/atoms/Heading";
+import Icon from "components/atoms/Icon";
+import IconButton from "components/atoms/IconButton";
+import Image from "components/atoms/Image";
+import Link from "components/atoms/Link";
+import Text from "components/atoms/Text";
+import MenuItem, { ActiveItem } from "components/molecules/Menu";
+import useWindowResize from "hooks/useWindowResize";
+import mapModifiers, {
+  handleRemoveScroll,
+  handleRemoveScrollResize,
+  handleToggleClassNoscroll,
+} from "utils/functions";
+
+type AccountNameType = {
+  name?: string
+}
+
+const AccountName: React.FC<AccountNameType> = ({
+  name,
+}) => (
+  <div className="m-account">
+    <div className="m-account_icon">
+      <Icon iconName="accountCircle" />
+    </div>
+    {
+      name
+      && (
+      <Link modifiers={["white", "small"]}>
+        {`Hi, ${name}`}
+      </Link>
+      )
+    }
+  </div>
+);
+export type LangItem={
+  title:string;
+  key:string;
+}
+export type DataMenuItem = {
+  title: string;
+  href?: string;
+  active?: boolean;
+  subMenu?: DataMenuItem[];
+}
+
+type HeaderMainProps = {
+  language?:LangItem[];
+  dataMenu: DataMenuItem[];
+  indexActiveMenuSub?: number;
+  handleClickBackSubMenu?: () => void;
+  handleClickToggleSubMenu?: (index: number) => void;
+  handleNavigate?:(href?:string)=>void;
+}
+
+const MainHeader: React.FC<HeaderMainProps> = ({
+  dataMenu,
+  language,
+  indexActiveMenuSub,
+  handleClickBackSubMenu,
+  handleClickToggleSubMenu,
+  handleNavigate,
+}) => {
+  const [activeLang, setActiveLang] = useState("vi");
+  return (
+    <ul className="o-header_nav container">
+      {
+      dataMenu.map((item, index) => (
+        <MenuItem
+          key={`dropdown-${index.toString()}`}
+          type="li"
+          modifiers={indexActiveMenuSub === index ? ["active", "mainMenu"] : ["mainMenu"]}
+          handleClick={() => handleClickToggleSubMenu && handleClickToggleSubMenu(index)}
+          main={(<Link modifiers={["white", "small"]}>{item.title}</Link>)}
+        >
+          <>
+            <li className="o-header_backSubMenu">
+              <IconButton handleClick={handleClickBackSubMenu} iconName="arrowRightAltWhiteHover" bgColor="transparent" />
+            </li>
+            {
+              item.subMenu?.map((sub, idx) => (
+                <ActiveItem
+                  active={window.location.pathname === sub.href}
+                  modifiers={["eerieBlack", "small"]}
+                  handleClick={() => handleNavigate && handleNavigate(sub.href)}
+                  key={`item-${idx.toString()}`}
+                >
+                  {sub.title}
+                </ActiveItem>
+              ))
+            }
+          </>
+        </MenuItem>
+      ))
+    }
+      {
+      language && (
+        <MenuItem
+          type="li"
+          modifiers={["language"]}
+          main={(<Link modifiers={["white", "small"]}>Ngôn ngữ</Link>)}
+        >
+          {
+          language.map((lang, idx) => (
+            <ActiveItem
+              handleClick={() => setActiveLang(lang.key)}
+              active={lang.key === activeLang}
+              key={`lang-${idx.toString()}`}
+            >
+              {lang.title}
+            </ActiveItem>
+          ))
+        }
+        </MenuItem>
+      )
+    }
+    </ul>
+  );
+};
+
+type HeaderProps = {
+  user?: {
+    name: string;
+  }
+}
+
+const Header: React.FC<HeaderProps> = ({
+  user,
+}) => {
+  const location = useLocation();
+  const history = useHistory();
+
+  const [isToggleMenu, setIsToggleMenu] = useState(false);
+  const [isToggleMenuSub, setIsToggleMenuSub] = useState(-1);
+
+  const checkActive = (href?:string):boolean => {
+    if (!href) return false;
+    return location.pathname === href;
+  };
+
+  const handleClickHamburger = () => {
+    setIsToggleMenu(!isToggleMenu);
+    setIsToggleMenuSub(-1);
+    handleToggleClassNoscroll();
+  };
+
+  const handleRemoveToggle = (): void => {
+    handleRemoveScroll();
+    setIsToggleMenuSub(-1);
+    setIsToggleMenu(false);
+  };
+
+  const handleOpenAccount = () => {
+    handleRemoveToggle();
+    // TODO logic account
+  };
+
+  const handleNavigate = (href?:string) => {
+    if (!href) return;
+    handleRemoveToggle();
+    history.push(href);
+  };
+
+  useWindowResize(() => handleRemoveScrollResize(() => { handleRemoveToggle(); }));
+
+  return (
+    <div className="o-header">
+      <div className="o-container container o-container-pdL-20">
+        <div className="o-header_wrap">
+          <div className="o-header_hamburger">
+            {
+              user && (
+              <div onClick={handleClickHamburger} className={mapModifiers("m-hamburger", isToggleMenu && "active")}>
+                <span />
+                <span />
+                <span />
+              </div>
+              )
+            }
+          </div>
+          <div className="o-header_left">
+            <Link handleClick={() => handleNavigate("/")}>
+              <div className="o-header_logo">
+                <h1 className="o-header_img">
+                  <Image imgSrc={Logo} alt="logo" ratio="1x1" />
+                </h1>
+                <Heading modifiers={["white", "650"]} type="h4">Poultry Connect</Heading>
+              </div>
+            </Link>
+          </div>
+          <div className={mapModifiers("o-header_main", isToggleMenu && "active")}>
+            {user
+              && (
+                <MainHeader
+                  handleNavigate={handleNavigate}
+                  language={dummyData.language}
+                  dataMenu={dummyData.menu}
+                  indexActiveMenuSub={isToggleMenuSub}
+                  handleClickBackSubMenu={() => setIsToggleMenuSub(-1)}
+                  handleClickToggleSubMenu={(index) => setIsToggleMenuSub(index)}
+                />
+              )}
+          </div>
+          <div className="o-header_right">
+            <MenuItem
+              modifiers={user ? ["account", "pdT-11"] : ["account", "pdT-11", "notLogin"]}
+              handleClick={handleOpenAccount}
+              main={(
+                <AccountName name={user?.name} />
+              )}
+            >
+              {
+                user && (
+                  <>
+                    <li className="m-account_nameMobile">
+                      <Text modifiers={["eerieBlack", "center"]}>{user?.name}</Text>
+                    </li>
+                    <ActiveItem handleClick={() => handleNavigate("/forgot")} active={checkActive("/forgot")}>Đổi mật khẩu</ActiveItem>
+                    <ActiveItem handleClick={() => handleNavigate("/logout")} active={checkActive("/logout")} modifiers={["carminePink"]}>Đăng xuất</ActiveItem>
+                  </>
+                )
+              }
+              {
+                !user && (
+                  <>
+                    <ActiveItem handleClick={() => handleNavigate("/login")} active={checkActive("/login")}>Đăng nhập</ActiveItem>
+                    <ActiveItem handleClick={() => handleNavigate("/register")} active={checkActive("/register")}>Đăng ký</ActiveItem>
+                  </>
+                )
+              }
+            </MenuItem>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Header;
+
+
+
+.o-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: $richElectricBlue;
+    padding: rem(8) 0;
+
+    @include tablet-down {
+        padding: 0;
+    }
+
+    &_wrap {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    &_hamburger {
+        position: relative;
+        z-index: 102;
+        align-items: center;
+        display: none;
+        @include tablet-down {
+            display: flex;
+            max-width: rem(250);
+            width: 100%;
+            justify-content: flex-start;
+        }
+        @include mobile-down {
+            max-width: rem(50);
+        }
+    }
+    &_left {
+        flex-shrink: 0;
+        @include tablet-down {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+    &_logo {
+        display: flex;
+        align-items: center;
+        .a-heading {
+            @include desktop-down {
+                @include fontBase(16, 20);
+            }
+        }
+    }
+
+    &_img {
+        margin: 0;
+        width: rem(64);
+        height: rem(64);
+    }
+
+    //main
+    &_main {
+        flex-shrink: 0;
+        flex-grow: 1;
+        margin-left: rem(32);
+        display: flex;
+        align-items: center;
+        .m-menuItem-mainMenu,
+        .m-menuItem-language {
+            padding: 0 rem(9);
+            @include desktop-down {
+                padding: 0 rem(5);
+            }
+            @include tablet-down {
+                padding: 0;
+            }
+        }
+        @include desktop-down {
+            margin-left: rem(16);
+        }
+        @include tablet-down {
+            margin-left: 0;
+            display: block;
+            position: fixed;
+            top: 64px;
+            left: -100%;
+            z-index: 101;
+            width: 100%;
+            height: calc(100vh - 64px);
+            overflow-y: auto;
+            background-color: $richElectricBlue;
+            transition: left 0.4s linear;
+            transition-delay: 0.2s;
+        }
+        &-active {
+            left: 0;
+        }
+    }
+
+    &_nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+
+        @include tablet-down {
+            display: block;
+            .m-dropDown {
+                margin-top: rem(30);
+            }
+        }
+        &.container {
+            @include tablet-up {
+                padding: 0;
+                max-width: auto;
+                margin: 0 rem(-9);
+            }
+            @include desktop {
+                margin: 0 rem(-5);
+            }
+        }
+    }
+
+    &_backSubMenu {
+        @include tablet-up {
+            display: none;
+        }
+        .a-icon {
+            transform: rotate(180deg);
+        }
+    }
+
+    //right
+    &_right {
+        max-width: rem(250);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        @include tablet-down {
+            width: 100%;
+            justify-content: flex-end;
+        }
+        @include mobile-down {
+            max-width: rem(50);
+        }
+        .m-account_nameMobile {
+            margin-bottom: rem(5);
+            @include mobile-up {
+                display: none;
+            }
+        }
+    }
+}
+
+.m-account {
+    display: flex;
+    align-items: center;
+    &_icon {
+        margin-right: rem(10);
+        @include mobile-down {
+            margin-right: 0;
+        }
+    }
+    > .a-link {
+        @include text-overflow(2);
+    }
+    @include mobile-down {
+        > .a-link {
+            display: none;
+        }
+    }
+}
+
+.o-container {
+    @include break-min(1440px) {
+        max-width: rem(1440);
+        padding-left: rem(20);
+        padding-right: rem(80);
+    }
+}
+
+.m-hamburger {
+    cursor: pointer;
+    span {
+        position: relative;
+        display: block;
+        width: rem(18);
+        height: 2px;
+        margin-bottom: 2px;
+        background-color: $white;
+        transition: 0.5s ease;
+        &:nth-child(1) {
+            transform-origin: left;
+        }
+        &:nth-child(2) {
+            transform-origin: center;
+        }
+        &:nth-child(3) {
+            transform-origin: left;
+        }
+    }
+    &-active {
+        span {
+            &:nth-child(1) {
+                top: -1px;
+                left: 0;
+                transform: rotate(45deg);
+            }
+            &:nth-child(2) {
+                top: 1px;
+                right: 3px;
+                transform: rotate(315deg);
+            }
+            &:nth-child(3) {
+                transform: scaleX(0);
+            }
+        }
+    }
+}
