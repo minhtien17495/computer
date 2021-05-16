@@ -1,0 +1,347 @@
+import React, { useRef, useState } from "react";
+
+import Link, { LinkProps } from "components/atoms/Link";
+import useClickOutside from "hooks/useClickOutSide";
+import mapModifiers from "utils/functions";
+
+interface ActiveItemProps extends LinkProps {
+  active?:boolean;
+}
+
+export const ActiveItem:React.FC<ActiveItemProps> = (
+  { active, children, ...propsLink },
+) => (
+  <li className={mapModifiers("m-activeItem", active && "active")}>
+    <Link {...propsLink}>
+      <span className="m-activeItem_main">
+        {children}
+      </span>
+    </Link>
+  </li>
+);
+
+type MenuItemProps={
+  main?:React.ReactNode;
+  modifiers?:("account"|"language"|"mainMenu"|"notLogin"|"pdT-11"|"active")[];
+  type?:"li"|"div";
+  handleClick?:()=>void;
+}
+
+const MenuItem:React.FC<MenuItemProps> = ({
+  main,
+  modifiers,
+  children,
+  handleClick,
+  type,
+}) => {
+  const Element = type || "div";
+  const [isExpand, setIsExpand] = useState(false);
+  const refMain = useRef<HTMLDivElement>(null);
+
+  useClickOutside(refMain, ():void => setIsExpand(false));
+
+  const handleClickExpand = () => {
+    if (handleClick) {
+      handleClick();
+    }
+    setIsExpand(!isExpand);
+  };
+
+  return (
+    <Element className={mapModifiers("m-menuItem", isExpand && "expand", modifiers)}>
+      <div ref={refMain} onClick={handleClickExpand} className="m-menuItem_main">
+        {main}
+        <span className="m-menuItem_arrow" />
+      </div>
+      <div className="m-menuItem_drop">
+        <div className="m-menuItem_content">
+          <ul className={`m-menuItem_list ${modifiers && modifiers.includes("mainMenu") && "container"}`}>
+            {children}
+          </ul>
+        </div>
+      </div>
+    </Element>
+  );
+};
+
+export default MenuItem;
+
+
+
+.m-menuItem {
+    list-style: none;
+    position: relative;
+
+    &:hover {
+        @include desktop-up {
+            .m-menuItem_arrow::before {
+                transform: rotate(180deg);
+            }
+            .m-menuItem_drop {
+                top: 100%;
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+    }
+
+    &-expand {
+        @include desktop-down {
+            .m-menuItem_arrow::before {
+                transform: rotate(180deg);
+            }
+            .m-menuItem_drop {
+                top: 100%;
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+    }
+
+    &-pdT-11 {
+        .m-menuItem_drop {
+            padding-top: rem(11);
+        }
+    }
+
+    &_main {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+    &_arrow {
+        margin-left: rem(4);
+        position: relative;
+        display: inline-block;
+        width: rem(24);
+        height: rem(24);
+        &::before {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            content: '';
+            background-image: url('~assets/icons/ic_arrow_drop_down.svg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            transition: all 0.3s linear;
+        }
+    }
+
+    &_drop {
+        top: 120%;
+        left: 0;
+        position: absolute;
+        padding-top: rem(16);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s linear;
+    }
+
+    &_content {
+        position: relative;
+        &::before {
+            position: absolute;
+            bottom: 100%;
+            left: rem(20);
+            width: 0;
+            height: 0;
+            content: '';
+            border-bottom: rem(8) solid $white;
+            border-right: rem(6) solid transparent;
+            border-left: rem(6) solid transparent;
+        }
+    }
+
+    &_list {
+        list-style: none;
+        background-color: $white;
+        border-radius: rem(4);
+        padding: rem(12);
+        box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.05);
+        @include scrollbars(12, $celestialBlue, $aliceBlue, 20);
+    }
+
+    // Modifier MenuMain
+    &-mainMenu {
+        @include tablet-down {
+            display: block;
+            position: static;
+        }
+        &.m-menuItem-active {
+            .m-menuItem_drop {
+                @include tablet-down {
+                    right: 0;
+                }
+            }
+            .m-menuItem_arrow::before {
+                @include tablet-down {
+                    transform: rotate(-90deg);
+                }
+            }
+        }
+
+        .m-menuItem_main {
+            @include tablet-down {
+                margin-top: rem(25);
+                justify-content: space-between;
+            }
+        }
+
+        .m-menuItem_arrow::before {
+            @include tablet-down {
+                transform: rotate(-90deg);
+            }
+        }
+
+        .m-menuItem_drop {
+            min-width: rem(400);
+            @include desktop-down {
+                min-width: rem(350);
+            }
+            @include tablet-down {
+                min-width: auto;
+                opacity: 1;
+                visibility: visible;
+                display: block;
+                position: fixed;
+                top: rem(64);
+                bottom: auto;
+                left: auto;
+                right: -100%;
+                z-index: 103;
+                width: 100%;
+                height: calc(100vh - 64px);
+                overflow-y: auto;
+                background-color: $aliceBlue;
+                transition: right 0.4s linear;
+                padding-top: 0;
+                padding-bottom: rem(100);
+            }
+        }
+
+        .m-menuItem_list {
+            @include tablet-up {
+                overflow: auto;
+                max-height: 70vh;
+            }
+            @include tablet-down {
+                box-shadow: none;
+                background-color: $aliceBlue;
+            }
+            &.container {
+                @include tablet-up {
+                    max-width: auto !important;
+                    padding: rem(12) !important;
+                }
+            }
+        }
+    }
+
+    // Modifier Account
+    &-account {
+        .m-menuItem_drop {
+            left: rem(30);
+            z-index: 105;
+            min-width: rem(204);
+            @include break-max(1366px) {
+                left: auto;
+                right: 0;
+            }
+        }
+        .m-menuItem_arrow {
+            @include mobile-down {
+                display: none;
+            }
+        }
+        .m-menuItem_content::before {
+            @include break-max(1366px) {
+                left: auto;
+                right: rem(40);
+                transform: translateX(50%);
+            }
+            @include mobile-down {
+                right: rem(6);
+                transform: none;
+            }
+        }
+    }
+
+    &-notLogin {
+        @include mobile-up {
+            .m-menuItem_drop {
+                left: auto;
+                right: 0;
+            }
+            .m-menuItem_content::before {
+                left: auto;
+                right: rem(50);
+                transform: translateX(50%);
+            }
+        }
+    }
+
+    // Modifier Language
+    &-language {
+        @include tablet-down {
+            margin-top: rem(25);
+        }
+        &.m-menuItem-expand {
+            .m-menuItem_drop {
+                visibility: visible;
+                opacity: 1;
+                max-height: rem(300);
+            }
+        }
+        .m-menuItem_drop {
+            min-width: rem(204);
+            @include tablet-down {
+                display: block;
+                max-width: rem(204);
+                position: static;
+                height: 100%;
+                max-height: 0;
+                overflow: hidden;
+            }
+        }
+        .m-menuItem_list {
+            @include tablet-down {
+                max-height: rem(210);
+                overflow: auto;
+            }
+        }
+    }
+}
+
+.m-activeItem {
+    cursor: pointer;
+    &-active {
+        background-color: $aliceBlue;
+        .m-activeItem_main::before {
+            height: 100%;
+        }
+    }
+    &:hover {
+        background-color: $aliceBlue;
+    }
+    .a-link {
+        padding: rem(8);
+        display: block;
+    }
+    &_main {
+        padding-left: rem(14);
+        position: relative;
+        display: block;
+        &::before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 0;
+            content: '';
+            background-color: $spanishBlue;
+            transition: 0.3s linear;
+        }
+    }
+}
