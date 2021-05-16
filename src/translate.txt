@@ -1,540 +1,276 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
 
-import Logo from "assets/icons/ic_home.svg";
-import Heading from "components/atoms/Heading";
-import Text from "components/atoms/Text";
-import mapModifiers from "utils/functions";
+import Button from 'components/atoms/Button';
+import Icon from 'components/atoms/Icon';
+import Text from 'components/atoms/Text';
+import Upload from 'components/molecules/Upload';
+import Modal from 'components/organisms/Modal';
+import { requestGetListCourseFiles } from 'reducers/coursefile/actions';
+import {
+  setUploadFiles,
+  requestUploadFiles,
+  requestDeleteFile,
+  setUploadProgress,
+  filterFileProgress,
+  requestSubmitUploadFiles,
+  resetUploadFiles,
+  uploadFilesOnError,
+} from 'reducers/courseuploadfiles/actions';
+import { ProgressFile } from 'reducers/courseuploadfiles/types';
+import useSelector from 'selectors/useSelector';
 
-type ActiveItemProps={
-  active?:boolean;
+interface UploadModalProps{
+    isShowModal: boolean;
+    onHideModel: () => void;
+    phaseFolderId?: number;
 }
-
-const ActiveItem:React.FC<ActiveItemProps> = ({ active, children }) => (
-  <li className={mapModifiers("m-activeItem", active && "active")}>
-    <div className="m-activeItem_main">
-      {children}
-    </div>
-  </li>
-);
-
-type DropDownProps={
-  main?:React.ReactNode;
-  modifierDrop?:("pdT-11"|"active")[];
-  modifiers?:("account"|"mainMenu")[];
-  type?:"li"|"div";
-  handleClick?:()=>void;
-}
-
-const DropDown:React.FC<DropDownProps> = ({
-  main,
-  modifierDrop,
-  modifiers,
-  children,
-  type,
-  handleClick,
+const UploadModal: React.FC<UploadModalProps> = ({
+  isShowModal,
+  onHideModel,
+  phaseFolderId,
 }) => {
-  const Element = type || "div";
-  return (
-    <Element className={mapModifiers("m-dropDown", modifiers)}>
-      <div onClick={handleClick} className="m-dropDown_main">
-        {main}
-        <span className="m-dropDown_arrow" />
-      </div>
-      <div className={mapModifiers("m-dropDown_drop", modifierDrop)}>
-        <ul className="m-dropDown_list">
-          {children}
-        </ul>
-      </div>
-    </Element>
-  );
-};
-const dummyMenu = [
-  {
-    title: "Biểu mẫu truy xuất",
-    subMenu: [
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-    ],
-  },
-  {
-    title: "Upload chứng chỉ",
-    subMenu: [
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-    ],
-  },
-  {
-    title: "Báo cáo lô",
-    subMenu: [
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-      {
-        title: "Vệ sinh chuồng chuẩn bị nhập gà",
-        href: "/",
-      },
-    ],
-  },
-];
-const dummyLang = [
-  {
-    title: "VN",
-  },
-  {
-    title: "EN",
-  },
-];
+  const { t } = useTranslation(['footwear_course', 'button']);
+  const owlClass = 't-uploadModal';
+  const { innerHeight, innerWidth } = window;
+  const [draggingStyle, setDraggingStyle] = useState('');
+  const [heightAreaUploadFile, setHeightAreaUploadFile] = useState(0);
+  const {
+    dataUploadFile, fileProgress, uploadedFiles,
+  } = useSelector((state) => state.courseuploadfiles);
+  const dispatch = useDispatch();
 
-const handleToggleClassNoscroll = () => {
-  const $root = document.querySelector("#root");
-  if ($root) {
-    $root.classList.toggle("noscroll");
-  }
-};
-
-const Header: React.FC = () => {
-  const [isToggleMenu, setIsToggleMenu] = useState(false);
-  const [isToggleMenuSub, setIsToggleMenuSub] = useState(-1);
-  const handleClickHamburger = () => {
-    setIsToggleMenu(!isToggleMenu);
-    setIsToggleMenuSub(-1);
-    handleToggleClassNoscroll();
+  const onDragOver = (e: React.DragEvent<HTMLFormElement | HTMLLabelElement>): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingStyle('dragging-file');
   };
+
+  const onDragEnter = (e: React.DragEvent<HTMLFormElement | HTMLLabelElement>): void => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const onDragLeave = (e: React.DragEvent<HTMLFormElement | HTMLLabelElement>): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingStyle('');
+  };
+
+  const onFileDrop = (e: React.DragEvent<HTMLFormElement | HTMLLabelElement>): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingStyle('');
+    const fileList = e.dataTransfer.files;
+    if (fileList) {
+      dispatch(setUploadFiles(fileList));
+    }
+    e.dataTransfer.clearData();
+  };
+
+  const filesSelected = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    const fileList = e.target.files;
+    if (fileList) {
+      dispatch(setUploadFiles(fileList));
+    }
+    e.target.value = '';
+  };
+
+  const onHandleRemoveFile = (fileId: number): void => {
+    const newDataUploadFile = [...dataUploadFile];
+    const fileDelete = newDataUploadFile.find((item) => item.fileId === fileId);
+    if (fileDelete) {
+      dispatch(requestDeleteFile(fileDelete));
+    } else {
+      dispatch(filterFileProgress(fileId));
+    }
+    if (innerWidth < 768) {
+      document.getElementsByClassName('t-uploadModal_content_upload_file')[0].setAttribute('style', 'height: auto');
+    }
+  };
+
+  useEffect(() => {
+    if (innerWidth < 768) {
+      const modalContentElement: HTMLCollectionOf<Element> | undefined = document.getElementsByClassName('modal-content');
+      const heightWrapFilesElement: HTMLCollectionOf<Element> | undefined = document.getElementsByClassName('t-uploadModal_content_upload_file');
+
+      if (heightWrapFilesElement && heightWrapFilesElement[0]
+          && modalContentElement && modalContentElement[0]) {
+        const heightWrapFiles = heightWrapFilesElement[0].clientHeight;
+        const heightModalUploadFiles = modalContentElement[0].clientHeight;
+
+        if (innerHeight <= heightModalUploadFiles + 20) {
+          const uploadHeightFileUpload = (heightWrapFiles
+            - (heightModalUploadFiles - innerHeight)) - 20;
+          document.getElementsByClassName('t-uploadModal_content_upload_file')[0].setAttribute('style', `height: ${uploadHeightFileUpload}px`);
+          setHeightAreaUploadFile(uploadHeightFileUpload);
+        }
+      }
+    }
+  }, [heightAreaUploadFile, innerHeight, innerWidth, dataUploadFile.length]);
+  const allowedExtensions = /\.(jpg|png|jpeg|xlsx|pdf|mp4)$/i;
+  const uploadFile = (files: ProgressFile[]): void => {
+    console.log(files);
+    if (files.length > 0) {
+      files.forEach((item) => {
+        const config = {
+          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+          onUploadProgress: (progressEvent: ProgressEvent<EventTarget>) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total,
+            );
+            dispatch(setUploadProgress(item.id, percentCompleted));
+          },
+        };
+        if (item.file.name.match(allowedExtensions)) {
+          const formPayload = new FormData();
+          // fix issue when open view file when file name contain character
+          formPayload.append('file', item.file, item.name.replace(/[|?*&;#$%@"<>()+,]/g, ''));
+          if (phaseFolderId) {
+            formPayload.append('phase_folder_id', `${phaseFolderId}`);
+          }
+          dispatch(requestUploadFiles(formPayload, item.id, config));
+        } else {
+          dispatch(setUploadProgress(item.id, 100));
+          dispatch(uploadFilesOnError({
+            code: 400,
+            detail: 'File is not correct format.',
+            title: 'File is not correct format.',
+            message: 'File is not correct format.',
+          }, item.id));
+        }
+      });
+    }
+  };
+  useEffect(() => {
+    console.log(fileProgress);
+    const fileToUpload = fileProgress.filter((file) => file.progress === 0);
+    if (fileToUpload) {
+      uploadFile(fileToUpload);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileProgress.length]);
+
+  const onHandleSubmitFiles = (): void => {
+    const isCheckUploaded = fileProgress.every((item) => item.isUploading === false);
+    if (isCheckUploaded) {
+      if (dataUploadFile && dataUploadFile.length > 0) {
+        dispatch(resetUploadFiles());
+        if (onHideModel) {
+          onHideModel();
+        }
+        const fileIds = dataUploadFile.map(({ id }) => id);
+        dispatch(requestSubmitUploadFiles({
+          folderId: `${phaseFolderId}`,
+          fileIds,
+        }));
+      }
+    }
+  };
+
+  const onHandleHideModel = (): void => {
+    if (onHideModel) {
+      dispatch(resetUploadFiles());
+      dataUploadFile.forEach((item) => {
+        dispatch(requestDeleteFile(item));
+      });
+      onHideModel();
+    }
+  };
+
+  useEffect(() => {
+    if (uploadedFiles && phaseFolderId) {
+      dispatch(requestGetListCourseFiles(phaseFolderId));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadedFiles]);
+
   return (
-    <div className="o-header">
-      <div className="o-container container o-container-pdL-20">
-        <div className="o-header_wrap">
-          <div className="o-header_hamburger">
-            <div onClick={handleClickHamburger} className={mapModifiers("m-hamburger", isToggleMenu && "active")}>
-              <span />
-              <span />
-              <span />
-            </div>
+    <div className={`${owlClass}`}>
+      <Modal modifier="upload" isShow={isShowModal} onHide={onHandleHideModel}>
+        <div className={`${owlClass}_wrap`}>
+          <div className={`${owlClass}_title`}>
+            <Text>{t('title_upload_file')}</Text>
           </div>
-          <div className="o-header_left">
-            <Link to="/">
-              <div className="o-header_logo">
-                <h1>
-                  <div className="o-header_img">
-                    <img src={Logo} alt="logo" />
-                  </div>
-                </h1>
-                <Heading modifiers={["white", "650"]} type="h4">Poultry Connect</Heading>
-              </div>
-            </Link>
-          </div>
-          <div className={mapModifiers("o-header_main", isToggleMenu && "active")}>
-            <ul className="o-header_nav">
-              {
-              dummyMenu.map((item, index) => (
-                <DropDown
-                  handleClick={() => setIsToggleMenuSub(index)}
-                  type="li"
-                  modifierDrop={isToggleMenuSub === index ? ["active"] : undefined}
-                  modifiers={["mainMenu"]}
-                  key={`dropdown-${index.toString()}`}
-                  main={(<span>{item.title}</span>)}
-                >
-                  {
-                    item.subMenu.map((sub, idx) => (
-                      <ActiveItem key={`item-${idx.toString()}`}><Link className="a-link" to={sub.href}>{sub.title}</Link></ActiveItem>
-                    ))
-                  }
-                </DropDown>
-              ))
-            }
-              <DropDown
-                type="li"
-                modifiers={["account"]}
-                main={(<span>Ngôn ngữ</span>)}
-              >
-                {
-                    dummyLang.map((lang, idx) => (
-                      <ActiveItem
-                        key={`lang-${idx.toString()}`}
-                      >
-                        <Text>{lang.title}</Text>
-                      </ActiveItem>
-                    ))
-                  }
-              </DropDown>
-            </ul>
-          </div>
-          <div className="o-header_fakeMobile" />
-          <div className="o-header_right">
-            <DropDown
-              modifiers={["account"]}
-              modifierDrop={["pdT-11"]}
-              main={(
-                <div className="m-account">
-                  <Text modifiers={["white"]}>Hi, Toan Nguyen</Text>
-                </div>
-            )}
+          <div className={`${owlClass}_line`} />
+          <div className={`${owlClass}_content`}>
+            <form
+              className={`${owlClass}_content_form ${
+                dataUploadFile && dataUploadFile.length > 0 ? ' size-area-upload' : ''
+              } ${draggingStyle}`}
+              encType="multipart/form-data"
+              onDragOver={onDragOver}
+              onDragEnter={onDragEnter}
+              onDragLeave={onDragLeave}
+              onDrop={onFileDrop}
             >
-              <ActiveItem active><Link className="a-link" to="/">Doi mat khau</Link></ActiveItem>
-              <ActiveItem><Link className="a-link" to="/">Dang xuat</Link></ActiveItem>
-            </DropDown>
+              <div className={`${owlClass}_content_area_upload`}>
+                <Icon iconName="upload-orange" />
+                <input
+                  type="file"
+                  id="file"
+                  multiple
+                  onChange={filesSelected}
+                />
+                <label
+                  htmlFor="file"
+                  onDragOver={onDragOver}
+                  onDragEnter={onDragEnter}
+                  onDragLeave={onDragLeave}
+                  onDrop={onFileDrop}
+                >
+                  {t('drap_file')}
+                  {' '}
+                </label>
+              </div>
+            </form>
+            {fileProgress && fileProgress.length > 0 && (
+              <div className={`${owlClass}_content_upload`}>
+                <Text>Uploading</Text>
+                <div className={`${owlClass}_content_upload_file`}>
+                  {fileProgress.map((item, index) => (
+                    <>
+                      <Upload
+                        key={`item-${index.toString()}`}
+                        fileName={item.file.name}
+                        size={item.file.size}
+                        fileType={item.file.type}
+                        percentage={item.progress}
+                        handleRemove={(): void => onHandleRemoveFile(item.id)}
+                        isUploading={item.isUploading || false}
+                        messageError={item.errors || ''}
+                      />
+                      <div className={`${owlClass}_content_line`} />
+                    </>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className={`${owlClass}_note`}>
+            <Text>{ t('warn_the_participants')}</Text>
+          </div>
+          <div className={`${owlClass}_button`}>
+            <Button
+              modifiers={['white', 'ovalFill', 'uppercase', 'bold']}
+              type="submit"
+              handleClick={onHandleSubmitFiles}
+              disabled={
+                fileProgress
+                && (fileProgress.length === 0
+                  || fileProgress.some((item) => item.errors || item.isUploading))
+              }
+            >
+              {t('button:submit')}
+            </Button>
           </div>
         </div>
-      </div>
+      </Modal>
     </div>
   );
 };
 
-export default Header;
-
-
-
-
-.o-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background-color: $richElectricBlue;
-    padding: 0 rem(8);
-    h1 {
-        margin: 0;
-    }
-    &_wrap {
-        display: flex;
-        justify-content: space-between;
-    }
-    &_hamburger {
-        position: relative;
-        z-index: 102;
-        display: flex;
-        align-items: center;
-        @include desktop-up {
-            display: none;
-        }
-    }
-    &_main {
-        flex-grow: 1;
-    }
-    &_fakeMobile {
-        display: none;
-        @include mobile-down {
-            display: block;
-            width: rem(18);
-        }
-    }
-    &_logo {
-        display: flex;
-        align-items: center;
-        @include mobile-down {
-            .a-heading {
-                @include fontBase(18, 20);
-            }
-        }
-    }
-    &_img {
-        width: rem(64);
-        height: rem(64);
-        img {
-            width: 100%;
-            height: 100%;
-        }
-    }
-    //main
-    &_main {
-        margin-left: rem(14);
-        display: flex;
-        align-items: center;
-        .m-dropDown {
-            margin-left: rem(18);
-        }
-        @include desktop-down {
-            margin-left: 0;
-            display: block;
-            position: fixed;
-            top: 64px;
-            left: -100%;
-            z-index: 101;
-            width: 100%;
-            height: calc(100vh - 64px);
-            overflow-y: auto;
-            background-color: $richElectricBlue;
-            transition: left 0.4s linear;
-            transition-delay: 0.2s;
-        }
-        &-active {
-            left: 0;
-        }
-    }
-    &_nav {
-        display: flex;
-        align-items: center;
-        @include desktop-down {
-            display: block;
-            .m-dropDown {
-                margin-top: rem(30);
-            }
-        }
-    }
-
-    //right
-    &_right {
-        display: flex;
-        align-items: center;
-        @include mobile-down {
-            display: none;
-        }
-    }
-}
-.o-container {
-    @include break-min(1440px) {
-        max-width: rem(1440);
-        padding-left: rem(20);
-        padding-right: rem(80);
-    }
-}
-.m-dropDown {
-    list-style: none;
-    position: relative;
-    &-mainMenu {
-        .m-dropDown_drop {
-            min-width: rem(400);
-        }
-        @include desktop-down {
-            display: block;
-            margin-left: 0 !important;
-            position: static;
-            .m-dropDown_drop {
-                min-width: auto;
-                opacity: 1;
-                visibility: visible;
-                display: block;
-                position: fixed;
-                top: rem(64) !important;
-                bottom: auto;
-                left: auto;
-                right: -100%;
-                z-index: 103;
-                width: 100%;
-                height: calc(100vh - 64px);
-                overflow-y: auto;
-                background-color: $white;
-                transition: right 0.4s linear;
-                padding-bottom: rem(100);
-                &-active {
-                    right: 0;
-                }
-                .m-dropDown_list {
-                    background-color: $white;
-                }
-            }
-        }
-    }
-    &-account {
-        .m-dropDown_drop {
-            min-width: rem(204);
-            @include desktop-down {
-                left: auto;
-                right: 0;
-            }
-        }
-    }
-    &:hover {
-        .m-dropDown_arrow::before {
-            transform: rotate(180deg);
-        }
-        .m-dropDown_drop {
-            top: 100%;
-            opacity: 1;
-            visibility: visible;
-        }
-    }
-    &_main {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-    }
-    &_arrow {
-        margin-left: rem(4);
-        position: relative;
-        display: inline-block;
-        width: rem(24);
-        height: rem(24);
-        &::before {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            content: '';
-            background-image: url('~assets/icons/ic_arrow_drop_down.svg');
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            transition: all 0.3s linear;
-        }
-    }
-    &_drop {
-        top: 120%;
-        left: 0;
-        position: absolute;
-        padding-top: rem(16);
-        opacity: 0;
-        visibility: visible;
-        transition: all 0.3s linear;
-        &-pdT-11 {
-            padding-top: rem(11);
-        }
-    }
-    &_list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        background-color: white;
-        border-radius: rem(4);
-        padding: rem(12);
-        box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.05);
-        position: relative;
-        &::after {
-            position: absolute;
-            bottom: 100%;
-            left: rem(20);
-            width: 0;
-            height: 0;
-            content: '';
-            border-bottom: rem(8) solid $white;
-            border-right: rem(6) solid transparent;
-            border-left: rem(6) solid transparent;
-        }
-    }
-}
-
-.m-activeItem {
-    padding: rem(8);
-    &-active {
-        background-color: #f2f8fb;
-        .m-activeItem_main::before {
-            height: 100%;
-        }
-    }
-    &:hover {
-        background-color: #f2f8fb;
-    }
-    &_main {
-        padding-left: rem(14);
-        position: relative;
-        &::before {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 2px;
-            height: 0;
-            content: '';
-            background-color: $spanishBlue;
-            transition: 0.3s linear;
-        }
-    }
-}
-
-.m-hamburger {
-    cursor: pointer;
-    span {
-        position: relative;
-        display: block;
-        width: rem(18);
-        height: 2px;
-        margin-bottom: 2px;
-        background-color: $white;
-        transition: 0.5s ease;
-        &:nth-child(1) {
-            transform-origin: left;
-        }
-        &:nth-child(2) {
-            transform-origin: center;
-        }
-        &:nth-child(3) {
-            transform-origin: left;
-        }
-    }
-    &-active {
-        span {
-            &:nth-child(1) {
-                top: -1px;
-                left: 0;
-                transform: rotate(45deg);
-            }
-            &:nth-child(2) {
-                top: 1px;
-                right: 3px;
-                transform: rotate(315deg);
-            }
-            &:nth-child(3) {
-                transform: scaleX(0);
-            }
-        }
-    }
-}
+export default UploadModal;
