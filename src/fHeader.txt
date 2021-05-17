@@ -9,13 +9,13 @@ import Icon from "components/atoms/Icon";
 import IconButton from "components/atoms/IconButton";
 import Image from "components/atoms/Image";
 import Link from "components/atoms/Link";
-import Text from "components/atoms/Text";
 import MenuItem, { ActiveItem } from "components/molecules/Menu";
+import Container from "components/organisms/Container";
 import useWindowResize from "hooks/useWindowResize";
 import mapModifiers, {
   handleRemoveScroll,
   handleRemoveScrollResize,
-  handleToggleClassNoscroll,
+  handleToggleClassNoScroll,
 } from "utils/functions";
 
 type AccountNameType = {
@@ -57,6 +57,7 @@ type HeaderMainProps = {
   handleClickBackSubMenu?: () => void;
   handleClickToggleSubMenu?: (index: number) => void;
   handleNavigate?:(href?:string)=>void;
+  checkActive:(href?:string)=>boolean;
 }
 
 const MainHeader: React.FC<HeaderMainProps> = ({
@@ -66,6 +67,7 @@ const MainHeader: React.FC<HeaderMainProps> = ({
   handleClickBackSubMenu,
   handleClickToggleSubMenu,
   handleNavigate,
+  checkActive,
 }) => {
   const [activeLang, setActiveLang] = useState("vi");
   return (
@@ -86,7 +88,7 @@ const MainHeader: React.FC<HeaderMainProps> = ({
             {
               item.subMenu?.map((sub, idx) => (
                 <ActiveItem
-                  active={window.location.pathname === sub.href}
+                  active={checkActive(sub.href)}
                   modifiers={["eerieBlack", "small"]}
                   handleClick={() => handleNavigate && handleNavigate(sub.href)}
                   key={`item-${idx.toString()}`}
@@ -104,7 +106,12 @@ const MainHeader: React.FC<HeaderMainProps> = ({
         <MenuItem
           type="li"
           modifiers={["language"]}
-          main={(<Link modifiers={["white", "small"]}>Ngôn ngữ</Link>)}
+          main={(
+            <>
+              <Icon iconName="translate" />
+              <Link modifiers={["white", "small"]}>Ngôn ngữ</Link>
+            </>
+          )}
         >
           {
           language.map((lang, idx) => (
@@ -124,6 +131,43 @@ const MainHeader: React.FC<HeaderMainProps> = ({
   );
 };
 
+type HeaderUserProps = {
+  handleNavigate:(href?:string)=>void;
+  handleOpenAccount:()=>void;
+  user?:AccountNameType;
+  checkActive:(href?:string)=>boolean;
+}
+
+const HeaderUser:React.FC<HeaderUserProps> = ({
+  handleNavigate,
+  handleOpenAccount,
+  user,
+  checkActive,
+}) => (
+  <div className="o-header_user container">
+    <MenuItem
+      modifiers={user ? ["account", "pdT-11"] : ["account", "pdT-11", "notLogin"]}
+      handleClick={handleOpenAccount}
+      main={(
+        <AccountName name={user?.name} />
+      )}
+    >
+      {
+      user ? (
+        <>
+          <ActiveItem handleClick={() => handleNavigate("/forgot")} active={checkActive("/forgot")}>Đổi mật khẩu</ActiveItem>
+          <ActiveItem handleClick={() => handleNavigate("/logout")} active={checkActive("/logout")} modifiers={["carminePink"]}>Đăng xuất</ActiveItem>
+        </>
+      ) : (
+        <>
+          <ActiveItem handleClick={() => handleNavigate("/login")} active={checkActive("/login")}>Đăng nhập</ActiveItem>
+          <ActiveItem handleClick={() => handleNavigate("/register")} active={checkActive("/register")}>Đăng ký</ActiveItem>
+        </>
+      )
+    }
+    </MenuItem>
+  </div>
+);
 type HeaderProps = {
   user?: {
     name: string;
@@ -133,21 +177,20 @@ type HeaderProps = {
 const Header: React.FC<HeaderProps> = ({
   user,
 }) => {
-  const location = useLocation();
   const history = useHistory();
-
-  const [isToggleMenu, setIsToggleMenu] = useState(false);
-  const [isToggleMenuSub, setIsToggleMenuSub] = useState(-1);
+  const location = useLocation();
 
   const checkActive = (href?:string):boolean => {
     if (!href) return false;
     return location.pathname === href;
   };
+  const [isToggleMenu, setIsToggleMenu] = useState(false);
+  const [isToggleMenuSub, setIsToggleMenuSub] = useState(-1);
 
   const handleClickHamburger = () => {
     setIsToggleMenu(!isToggleMenu);
     setIsToggleMenuSub(-1);
-    handleToggleClassNoscroll();
+    handleToggleClassNoScroll();
   };
 
   const handleRemoveToggle = (): void => {
@@ -157,7 +200,9 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const handleOpenAccount = () => {
-    handleRemoveToggle();
+    if (window.innerWidth >= 991) {
+      handleRemoveToggle();
+    }
     // TODO logic account
   };
 
@@ -171,18 +216,14 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <div className="o-header">
-      <div className="o-container container o-container-pdL-20">
+      <Container modifiers="heading">
         <div className="o-header_wrap">
           <div className="o-header_hamburger">
-            {
-              user && (
-              <div onClick={handleClickHamburger} className={mapModifiers("m-hamburger", isToggleMenu && "active")}>
-                <span />
-                <span />
-                <span />
-              </div>
-              )
-            }
+            <div onClick={handleClickHamburger} className={mapModifiers("m-hamburger", isToggleMenu && "active")}>
+              <span />
+              <span />
+              <span />
+            </div>
           </div>
           <div className="o-header_left">
             <Link handleClick={() => handleNavigate("/")}>
@@ -194,7 +235,7 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             </Link>
           </div>
-          <div className={mapModifiers("o-header_main", isToggleMenu && "active")}>
+          <div className={mapModifiers("o-header_main", isToggleMenu && "active", !user && "notLogin")}>
             {user
               && (
                 <MainHeader
@@ -204,40 +245,19 @@ const Header: React.FC<HeaderProps> = ({
                   indexActiveMenuSub={isToggleMenuSub}
                   handleClickBackSubMenu={() => setIsToggleMenuSub(-1)}
                   handleClickToggleSubMenu={(index) => setIsToggleMenuSub(index)}
+                  checkActive={checkActive}
                 />
               )}
+            <HeaderUser
+              handleNavigate={handleNavigate}
+              handleOpenAccount={handleOpenAccount}
+              user={user}
+              checkActive={checkActive}
+            />
           </div>
-          <div className="o-header_right">
-            <MenuItem
-              modifiers={user ? ["account", "pdT-11"] : ["account", "pdT-11", "notLogin"]}
-              handleClick={handleOpenAccount}
-              main={(
-                <AccountName name={user?.name} />
-              )}
-            >
-              {
-                user && (
-                  <>
-                    <li className="m-account_nameMobile">
-                      <Text modifiers={["eerieBlack", "center"]}>{user?.name}</Text>
-                    </li>
-                    <ActiveItem handleClick={() => handleNavigate("/forgot")} active={checkActive("/forgot")}>Đổi mật khẩu</ActiveItem>
-                    <ActiveItem handleClick={() => handleNavigate("/logout")} active={checkActive("/logout")} modifiers={["carminePink"]}>Đăng xuất</ActiveItem>
-                  </>
-                )
-              }
-              {
-                !user && (
-                  <>
-                    <ActiveItem handleClick={() => handleNavigate("/login")} active={checkActive("/login")}>Đăng nhập</ActiveItem>
-                    <ActiveItem handleClick={() => handleNavigate("/register")} active={checkActive("/register")}>Đăng ký</ActiveItem>
-                  </>
-                )
-              }
-            </MenuItem>
-          </div>
+          <div className="o-header_fakeRight" />
         </div>
-      </div>
+      </Container>
     </div>
   );
 };
@@ -246,11 +266,14 @@ export default Header;
 
 
 
+
+
 .o-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
+    z-index: $zHeader;
     background-color: $richElectricBlue;
     padding: rem(8) 0;
 
@@ -265,17 +288,12 @@ export default Header;
 
     &_hamburger {
         position: relative;
-        z-index: 102;
+        z-index: $zHamburger;
         align-items: center;
         display: none;
         @include tablet-down {
+            width: rem(50);
             display: flex;
-            max-width: rem(250);
-            width: 100%;
-            justify-content: flex-start;
-        }
-        @include mobile-down {
-            max-width: rem(50);
         }
     }
     &_left {
@@ -305,7 +323,6 @@ export default Header;
 
     //main
     &_main {
-        flex-shrink: 0;
         flex-grow: 1;
         margin-left: rem(32);
         display: flex;
@@ -325,24 +342,30 @@ export default Header;
         }
         @include tablet-down {
             margin-left: 0;
+            padding-bottom: rem(50);
             display: block;
             position: fixed;
             top: 64px;
             left: -100%;
-            z-index: 101;
+            z-index: $zMenuMain;
             width: 100%;
             height: calc(100vh - 64px);
             overflow-y: auto;
             background-color: $richElectricBlue;
             transition: left 0.4s linear;
             transition-delay: 0.2s;
+            @include scrollBars(12, $celestialBlue, $aliceBlue, 20);
         }
         &-active {
             left: 0;
         }
+        &-notLogin {
+            justify-content: flex-end;
+        }
     }
 
     &_nav {
+        flex-grow: 1;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -375,23 +398,32 @@ export default Header;
     }
 
     //right
-    &_right {
-        max-width: rem(250);
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
+    &_user {
+        @include tablet-up {
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            max-width: rem(250);
+            width: auto;
+            flex-shrink: 0;
+        }
+        @include break(991px, 1440px) {
+            max-width: rem(200);
+        }
         @include tablet-down {
+            margin-top: rem(9);
             width: 100%;
-            justify-content: flex-end;
+            display: block;
         }
-        @include mobile-down {
-            max-width: rem(50);
-        }
-        .m-account_nameMobile {
-            margin-bottom: rem(5);
-            @include mobile-up {
-                display: none;
-            }
+    }
+
+    // fake right
+    &_fakeRight {
+        display: none;
+        @include tablet-down {
+            display: block;
+            width: rem(50);
         }
     }
 }
@@ -401,30 +433,15 @@ export default Header;
     align-items: center;
     &_icon {
         margin-right: rem(10);
-        @include mobile-down {
-            margin-right: 0;
-        }
     }
     > .a-link {
         @include text-overflow(2);
-    }
-    @include mobile-down {
-        > .a-link {
-            display: none;
-        }
-    }
-}
-
-.o-container {
-    @include break-min(1440px) {
-        max-width: rem(1440);
-        padding-left: rem(20);
-        padding-right: rem(80);
     }
 }
 
 .m-hamburger {
     cursor: pointer;
+    padding: rem(10) rem(10) rem(10) 0;
     span {
         position: relative;
         display: block;
