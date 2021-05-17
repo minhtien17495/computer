@@ -22,7 +22,7 @@ export const ActiveItem:React.FC<ActiveItemProps> = (
 
 type MenuItemProps={
   main?:React.ReactNode;
-  modifiers?:("account"|"language"|"mainMenu"|"notLogin"|"pdT-11"|"active")[];
+  modifiers?:("account"|"language"|"languageBottom"|"mainMenu"|"notLogin"|"pdT-11"|"active")[];
   type?:"li"|"div";
   handleClick?:()=>void;
 }
@@ -55,7 +55,7 @@ const MenuItem:React.FC<MenuItemProps> = ({
       </div>
       <div className="m-menuItem_drop">
         <div className="m-menuItem_content">
-          <ul className={`m-menuItem_list ${modifiers && modifiers.includes("mainMenu") && "container"}`}>
+          <ul className={`m-menuItem_list ${modifiers?.includes("mainMenu") ? "container" : ""}`}>
             {children}
           </ul>
         </div>
@@ -160,7 +160,7 @@ export default MenuItem;
         border-radius: rem(4);
         padding: rem(12);
         box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.05);
-        @include scrollbars(12, $celestialBlue, $aliceBlue, 20);
+        @include scrollBars(12, $celestialBlue, $aliceBlue, 20);
     }
 
     // Modifier MenuMain
@@ -210,14 +210,15 @@ export default MenuItem;
                 bottom: auto;
                 left: auto;
                 right: -100%;
-                z-index: 103;
+                z-index: $zMenuItemDrop;
                 width: 100%;
                 height: calc(100vh - 64px);
                 overflow-y: auto;
                 background-color: $aliceBlue;
                 transition: right 0.4s linear;
                 padding-top: 0;
-                padding-bottom: rem(100);
+                padding-bottom: rem(50);
+                @include scrollBars(12, $celestialBlue, $aliceBlue, 20);
             }
         }
 
@@ -243,16 +244,19 @@ export default MenuItem;
     &-account {
         .m-menuItem_drop {
             left: rem(30);
-            z-index: 105;
+            z-index: $zMenuItemDropAccount;
             min-width: rem(204);
             @include break-max(1366px) {
                 left: auto;
                 right: 0;
             }
-        }
-        .m-menuItem_arrow {
-            @include mobile-down {
-                display: none;
+            @include tablet-down {
+                display: block;
+                max-width: rem(204);
+                position: static;
+                height: 100%;
+                max-height: 0;
+                overflow: hidden;
             }
         }
         .m-menuItem_content::before {
@@ -261,15 +265,30 @@ export default MenuItem;
                 right: rem(40);
                 transform: translateX(50%);
             }
-            @include mobile-down {
-                right: rem(6);
-                transform: none;
+            @include tablet-down {
+                bottom: 100%;
+                left: 1.25rem;
+                right: auto;
+            }
+        }
+
+        &.m-menuItem-expand {
+            .m-menuItem_drop {
+                visibility: visible;
+                opacity: 1;
+                max-height: 50vh;
+            }
+        }
+        .m-menuItem_list {
+            @include tablet-down {
+                max-height: rem(210);
+                overflow: auto;
             }
         }
     }
 
     &-notLogin {
-        @include mobile-up {
+        @include tablet-up {
             .m-menuItem_drop {
                 left: auto;
                 right: 0;
@@ -278,6 +297,38 @@ export default MenuItem;
                 left: auto;
                 right: rem(50);
                 transform: translateX(50%);
+            }
+        }
+        @include tablet-down {
+            .m-menuItem_main {
+                display: none;
+            }
+            .m-menuItem_drop {
+                opacity: 1;
+                visibility: visible;
+                position: static;
+                max-height: 100%;
+            }
+            .m-menuItem_content::before {
+                display: none;
+            }
+            .m-menuItem_list {
+                padding: 0;
+                background-color: transparent;
+            }
+            .a-link {
+                color: $white;
+                @include fontBase(18, 24);
+            }
+            .m-activeItem {
+                background-color: transparent;
+                transition: unset;
+                &-active {
+                    background-color: transparent;
+                }
+                &:hover {
+                    background-color: transparent;
+                }
             }
         }
     }
@@ -311,7 +362,57 @@ export default MenuItem;
                 overflow: auto;
             }
         }
+        .a-icon {
+            margin-right: rem(8);
+        }
     }
+
+    // Modifier language bottom
+    &-languageBottom {
+        .m-menuItem_drop {
+            top: auto;
+            right: 0;
+            left: auto;
+            bottom: 120%;
+            min-width: rem(204);
+            padding-top: 0;
+            padding-bottom: rem(16);
+        }
+        .m-menuItem_content::before {
+            bottom: auto;
+            top: 100%;
+            right: rem(40);
+            left: auto;
+            transform: rotate(180deg);
+        }
+    }
+
+    &:hover {
+        @include desktop-up {
+            &.m-menuItem-languageBottom {
+                .m-menuItem_drop {
+                    top: auto;
+                    bottom: 100%;
+                    opacity: 1;
+                    visibility: visible;
+                }
+            }
+        }
+    }
+
+    &-expand {
+        @include desktop-down {
+            &.m-menuItem-languageBottom {
+                .m-menuItem_drop {
+                    top: auto;
+                    bottom: 100%;
+                    opacity: 1;
+                    visibility: visible;
+                }
+            }
+        }
+    }
+    //end modifier language bottom
 }
 
 .m-activeItem {
