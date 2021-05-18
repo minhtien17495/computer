@@ -1,276 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+/* eslint-disable no-console */
+/* eslint-disable no-underscore-dangle */
+import * as chartjs from "chart.js";
+import React, { useRef } from "react";
+import { Bar } from "react-chartjs-2";
 
-import Button from 'components/atoms/Button';
-import Icon from 'components/atoms/Icon';
-import Text from 'components/atoms/Text';
-import Upload from 'components/molecules/Upload';
-import Modal from 'components/organisms/Modal';
-import { requestGetListCourseFiles } from 'reducers/coursefile/actions';
-import {
-  setUploadFiles,
-  requestUploadFiles,
-  requestDeleteFile,
-  setUploadProgress,
-  filterFileProgress,
-  requestSubmitUploadFiles,
-  resetUploadFiles,
-  uploadFilesOnError,
-} from 'reducers/courseuploadfiles/actions';
-import { ProgressFile } from 'reducers/courseuploadfiles/types';
-import useSelector from 'selectors/useSelector';
-
-interface UploadModalProps{
-    isShowModal: boolean;
-    onHideModel: () => void;
-    phaseFolderId?: number;
+interface ChartMortalityReportProps{
+  dataChart?: chartjs.ChartData;
+  sumArray?:Array<number>;
 }
-const UploadModal: React.FC<UploadModalProps> = ({
-  isShowModal,
-  onHideModel,
-  phaseFolderId,
+const ChartMortalityReport: React.FC<ChartMortalityReportProps> = ({
+  dataChart,
+  sumArray,
 }) => {
-  const { t } = useTranslation(['footwear_course', 'button']);
-  const owlClass = 't-uploadModal';
-  const { innerHeight, innerWidth } = window;
-  const [draggingStyle, setDraggingStyle] = useState('');
-  const [heightAreaUploadFile, setHeightAreaUploadFile] = useState(0);
-  const {
-    dataUploadFile, fileProgress, uploadedFiles,
-  } = useSelector((state) => state.courseuploadfiles);
-  const dispatch = useDispatch();
-
-  const onDragOver = (e: React.DragEvent<HTMLFormElement | HTMLLabelElement>): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDraggingStyle('dragging-file');
-  };
-
-  const onDragEnter = (e: React.DragEvent<HTMLFormElement | HTMLLabelElement>): void => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const onDragLeave = (e: React.DragEvent<HTMLFormElement | HTMLLabelElement>): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDraggingStyle('');
-  };
-
-  const onFileDrop = (e: React.DragEvent<HTMLFormElement | HTMLLabelElement>): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDraggingStyle('');
-    const fileList = e.dataTransfer.files;
-    if (fileList) {
-      dispatch(setUploadFiles(fileList));
-    }
-    e.dataTransfer.clearData();
-  };
-
-  const filesSelected = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    const fileList = e.target.files;
-    if (fileList) {
-      dispatch(setUploadFiles(fileList));
-    }
-    e.target.value = '';
-  };
-
-  const onHandleRemoveFile = (fileId: number): void => {
-    const newDataUploadFile = [...dataUploadFile];
-    const fileDelete = newDataUploadFile.find((item) => item.fileId === fileId);
-    if (fileDelete) {
-      dispatch(requestDeleteFile(fileDelete));
-    } else {
-      dispatch(filterFileProgress(fileId));
-    }
-    if (innerWidth < 768) {
-      document.getElementsByClassName('t-uploadModal_content_upload_file')[0].setAttribute('style', 'height: auto');
-    }
-  };
-
-  useEffect(() => {
-    if (innerWidth < 768) {
-      const modalContentElement: HTMLCollectionOf<Element> | undefined = document.getElementsByClassName('modal-content');
-      const heightWrapFilesElement: HTMLCollectionOf<Element> | undefined = document.getElementsByClassName('t-uploadModal_content_upload_file');
-
-      if (heightWrapFilesElement && heightWrapFilesElement[0]
-          && modalContentElement && modalContentElement[0]) {
-        const heightWrapFiles = heightWrapFilesElement[0].clientHeight;
-        const heightModalUploadFiles = modalContentElement[0].clientHeight;
-
-        if (innerHeight <= heightModalUploadFiles + 20) {
-          const uploadHeightFileUpload = (heightWrapFiles
-            - (heightModalUploadFiles - innerHeight)) - 20;
-          document.getElementsByClassName('t-uploadModal_content_upload_file')[0].setAttribute('style', `height: ${uploadHeightFileUpload}px`);
-          setHeightAreaUploadFile(uploadHeightFileUpload);
-        }
-      }
-    }
-  }, [heightAreaUploadFile, innerHeight, innerWidth, dataUploadFile.length]);
-  const allowedExtensions = /\.(jpg|png|jpeg|xlsx|pdf|mp4)$/i;
-  const uploadFile = (files: ProgressFile[]): void => {
-    console.log(files);
-    if (files.length > 0) {
-      files.forEach((item) => {
-        const config = {
-          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-          onUploadProgress: (progressEvent: ProgressEvent<EventTarget>) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total,
-            );
-            dispatch(setUploadProgress(item.id, percentCompleted));
+  const ref = useRef<chartjs.Chart>();
+  const optionsChart = {
+    responsive: true,
+    maintainAspectRatio: 1276 / 390,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          color: "#3e3e3e",
+          font(context: { chart: { width: any; } }) {
+            const { width } = context.chart;
+            // fontsize 16 => maxWidthChart = 1280 / 80
+            const size = Math.round(width / 80);
+            return {
+              size,
+              weight: 700,
+            };
           },
-        };
-        if (item.file.name.match(allowedExtensions)) {
-          const formPayload = new FormData();
-          // fix issue when open view file when file name contain character
-          formPayload.append('file', item.file, item.name.replace(/[|?*&;#$%@"<>()+,]/g, ''));
-          if (phaseFolderId) {
-            formPayload.append('phase_folder_id', `${phaseFolderId}`);
-          }
-          dispatch(requestUploadFiles(formPayload, item.id, config));
-        } else {
-          dispatch(setUploadProgress(item.id, 100));
-          dispatch(uploadFilesOnError({
-            code: 400,
-            detail: 'File is not correct format.',
-            title: 'File is not correct format.',
-            message: 'File is not correct format.',
-          }, item.id));
-        }
+        },
+      },
+      title: {
+        display: true,
+        text: "Mortality Report",
+        color: "#3e3e3e",
+        font(context: { chart: { width: any; } }) {
+          const { width } = context.chart;
+          // fontsize 16 => maxWidthChart = 1280 / 80
+          const size = Math.round(width / 45);
+          return {
+            size,
+            weight: 700,
+          };
+        },
+      },
+    },
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: "Removals Rate (%)",
+          color: "#3e3e3e",
+          font(context: { chart: { width: any; } }) {
+            const { width } = context.chart;
+            // fontsize 16 => maxWidthChart = 1280 / 80
+            const size = Math.round(width / 80);
+            return {
+              size,
+              weight: 700,
+            };
+          },
+        },
+      },
+      x: {
+        title: {
+          display: true,
+          text: "Date old",
+          color: "#3e3e3e",
+          font(context: { chart: { width: any; } }) {
+            const { width } = context.chart;
+            // fontsize 16 => maxWidthChart = 1280 / 80
+            const size = Math.round(width / 80);
+            return {
+              size,
+              weight: 700,
+            };
+          },
+        },
+      },
+    },
+  };
+
+  const plugins = [{
+    afterDraw: (chart:any) => {
+      if (!sumArray) return;
+      if (!chart.config.data && chart.config.data.datasets.length <= 0) return;
+      const { ctx } = chart;
+      ctx.save();
+      ctx.font = window.innerWidth < 575 ? "6px" : "12px";
+      ctx.fillStyle = "#3e3e3e";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.restore();
+      console.log(ctx);
+      const meta = chart.getDatasetMeta(1);
+      meta.data.forEach((element: { tooltipPosition: () => any; }, i:number) => {
+        console.log("meta", meta);
+        const position = element.tooltipPosition();
+        const textWidth = ctx.measureText(`${sumArray[i]}`).width;
+        const x = position.x - textWidth / 2;
+        const y = position.y - 10;
+        ctx.fillText(`${sumArray[i]}`, x, y);
       });
-    }
-  };
-  useEffect(() => {
-    console.log(fileProgress);
-    const fileToUpload = fileProgress.filter((file) => file.progress === 0);
-    if (fileToUpload) {
-      uploadFile(fileToUpload);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileProgress.length]);
-
-  const onHandleSubmitFiles = (): void => {
-    const isCheckUploaded = fileProgress.every((item) => item.isUploading === false);
-    if (isCheckUploaded) {
-      if (dataUploadFile && dataUploadFile.length > 0) {
-        dispatch(resetUploadFiles());
-        if (onHideModel) {
-          onHideModel();
-        }
-        const fileIds = dataUploadFile.map(({ id }) => id);
-        dispatch(requestSubmitUploadFiles({
-          folderId: `${phaseFolderId}`,
-          fileIds,
-        }));
-      }
-    }
-  };
-
-  const onHandleHideModel = (): void => {
-    if (onHideModel) {
-      dispatch(resetUploadFiles());
-      dataUploadFile.forEach((item) => {
-        dispatch(requestDeleteFile(item));
-      });
-      onHideModel();
-    }
-  };
-
-  useEffect(() => {
-    if (uploadedFiles && phaseFolderId) {
-      dispatch(requestGetListCourseFiles(phaseFolderId));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uploadedFiles]);
+    },
+  }];
 
   return (
-    <div className={`${owlClass}`}>
-      <Modal modifier="upload" isShow={isShowModal} onHide={onHandleHideModel}>
-        <div className={`${owlClass}_wrap`}>
-          <div className={`${owlClass}_title`}>
-            <Text>{t('title_upload_file')}</Text>
-          </div>
-          <div className={`${owlClass}_line`} />
-          <div className={`${owlClass}_content`}>
-            <form
-              className={`${owlClass}_content_form ${
-                dataUploadFile && dataUploadFile.length > 0 ? ' size-area-upload' : ''
-              } ${draggingStyle}`}
-              encType="multipart/form-data"
-              onDragOver={onDragOver}
-              onDragEnter={onDragEnter}
-              onDragLeave={onDragLeave}
-              onDrop={onFileDrop}
-            >
-              <div className={`${owlClass}_content_area_upload`}>
-                <Icon iconName="upload-orange" />
-                <input
-                  type="file"
-                  id="file"
-                  multiple
-                  onChange={filesSelected}
-                />
-                <label
-                  htmlFor="file"
-                  onDragOver={onDragOver}
-                  onDragEnter={onDragEnter}
-                  onDragLeave={onDragLeave}
-                  onDrop={onFileDrop}
-                >
-                  {t('drap_file')}
-                  {' '}
-                </label>
-              </div>
-            </form>
-            {fileProgress && fileProgress.length > 0 && (
-              <div className={`${owlClass}_content_upload`}>
-                <Text>Uploading</Text>
-                <div className={`${owlClass}_content_upload_file`}>
-                  {fileProgress.map((item, index) => (
-                    <>
-                      <Upload
-                        key={`item-${index.toString()}`}
-                        fileName={item.file.name}
-                        size={item.file.size}
-                        fileType={item.file.type}
-                        percentage={item.progress}
-                        handleRemove={(): void => onHandleRemoveFile(item.id)}
-                        isUploading={item.isUploading || false}
-                        messageError={item.errors || ''}
-                      />
-                      <div className={`${owlClass}_content_line`} />
-                    </>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className={`${owlClass}_note`}>
-            <Text>{ t('warn_the_participants')}</Text>
-          </div>
-          <div className={`${owlClass}_button`}>
-            <Button
-              modifiers={['white', 'ovalFill', 'uppercase', 'bold']}
-              type="submit"
-              handleClick={onHandleSubmitFiles}
-              disabled={
-                fileProgress
-                && (fileProgress.length === 0
-                  || fileProgress.some((item) => item.errors || item.isUploading))
-              }
-            >
-              {t('button:submit')}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+    <div className="o-chartMortalityReport">
+      <Bar plugins={plugins} ref={ref} type="bar" data={dataChart} options={optionsChart} />
     </div>
   );
 };
 
-export default UploadModal;
+export default ChartMortalityReport;
+
+
+
+
+import { Story, Meta } from "@storybook/react";
+import base from "paths.macro";
+import React from "react";
+
+import Container from "../Container";
+
+import ChartMortalityReport from ".";
+
+export default {
+  title: `Components/${base.replace("/src/components/", "").replace(/\/$/, "")}`,
+  component: ChartMortalityReport,
+} as Meta;
+
+const arbitraryStackKey = "stack1";
+const sumArray = [0, 0.02, 0.06, 0.04, 0.08, 0.04, 0.04, 0.04, 0.04, 0.06, 0.1];
+const data = {
+  labels: ["0", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"],
+  datasets: [
+    // These two will be in the same stack.
+    {
+      stack: arbitraryStackKey,
+      label: "Dead Rate",
+      data: [0, 0.02, 0.06, 0.04, 0.08, 0.04, 0.04, 0.04, 0.04, 0.06, 0.1],
+      backgroundColor: "#b22322",
+    },
+    {
+      stack: arbitraryStackKey,
+      label: "Culled Rate",
+      data: [0, 0.02, 0.07, 0.01, 0.03, 0.02, 0.04, 0.01, 0, 0.08, 0.02],
+      backgroundColor: "#cd950d",
+    },
+  ],
+};
+export const normal: Story = () => (
+  <Container>
+    <ChartMortalityReport dataChart={data} sumArray={sumArray} />
+  </Container>
+);
