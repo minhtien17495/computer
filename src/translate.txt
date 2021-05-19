@@ -1,159 +1,141 @@
-/* eslint-disable no-console */
-/* eslint-disable no-underscore-dangle */
-import * as chartjs from "chart.js";
-import React, { useRef } from "react";
+import { ChartData } from "chart.js";
+import React, { useEffect, useState, useMemo } from "react";
 import { Bar } from "react-chartjs-2";
 
-interface ChartMortalityReportProps{
-  dataChart?: chartjs.ChartData;
-  sumArray?:Array<number>;
+const styleText = (label?:string, minFontSize?:number, fontWeight?:number, ratio?:number) => ({
+  display: true,
+  text: label,
+  color: "#3e3e3e",
+  font(context: { chart: { width: any; } }) {
+    const { width } = context.chart;
+    // fontsize 16 => maxWidthChart = 1280 / 80
+    const size = Math.max(Math.round(width / (ratio || 80)), minFontSize || 10);
+    return {
+      size,
+      weight: fontWeight || 700,
+    };
+  },
+});
+
+type DataChartItem={
+  label:string,
+  data:Array<number>
 }
-const ChartMortalityReport: React.FC<ChartMortalityReportProps> = ({
+
+interface ChartVaccineProps{
+  labels?:Array<string>;
+  dataChart?: DataChartItem[];
+  infoChart?:{
+    labelY?:string;
+    labelX?:string;
+    titleChart?:string;
+  }
+}
+
+const ChartVaccine: React.FC<ChartVaccineProps> = ({
+  labels,
   dataChart,
-  sumArray,
+  infoChart,
 }) => {
-  const ref = useRef<chartjs.Chart>();
-  const optionsChart = {
+  const [data, setData] = useState<ChartData>();
+  const optionsChart = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: 1276 / 390,
     plugins: {
       legend: {
         position: "bottom",
-        labels: {
-          color: "#3e3e3e",
-          font(context: { chart: { width: any; } }) {
-            const { width } = context.chart;
-            // fontsize 16 => maxWidthChart = 1280 / 80
-            const size = Math.round(width / 80);
-            return {
-              size,
-              weight: 700,
-            };
-          },
-        },
+        labels: styleText(),
       },
       title: {
-        display: true,
-        text: "Mortality Report",
-        color: "#3e3e3e",
-        font(context: { chart: { width: any; } }) {
-          const { width } = context.chart;
-          // fontsize 16 => maxWidthChart = 1280 / 80
-          const size = Math.round(width / 45);
-          return {
-            size,
-            weight: 700,
-          };
+        ...styleText(infoChart?.titleChart, 14, 700, 45),
+        padding: {
+          bottom: 20,
         },
       },
     },
     scales: {
       y: {
-        title: {
-          display: true,
-          text: "Removals Rate (%)",
-          color: "#3e3e3e",
-          font(context: { chart: { width: any; } }) {
-            const { width } = context.chart;
-            // fontsize 16 => maxWidthChart = 1280 / 80
-            const size = Math.round(width / 80);
-            return {
-              size,
-              weight: 700,
-            };
-          },
-        },
+        title: styleText(infoChart?.labelY),
+        ticks: styleText(undefined, 12, 500),
       },
       x: {
-        title: {
-          display: true,
-          text: "Date old",
-          color: "#3e3e3e",
-          font(context: { chart: { width: any; } }) {
-            const { width } = context.chart;
-            // fontsize 16 => maxWidthChart = 1280 / 80
-            const size = Math.round(width / 80);
-            return {
-              size,
-              weight: 700,
-            };
-          },
-        },
+        title: styleText(infoChart?.labelX),
+        ticks: styleText(undefined, 8, 500),
       },
     },
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [dataChart]);
 
-  const plugins = [{
+  const plugins = useMemo(() => [{
     afterDraw: (chart:any) => {
-      if (!sumArray) return;
+      if (!dataChart) return;
       if (!chart.config.data && chart.config.data.datasets.length <= 0) return;
       const { ctx } = chart;
       ctx.save();
-      ctx.font = window.innerWidth < 575 ? "6px" : "12px";
       ctx.fillStyle = "#3e3e3e";
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.restore();
-      console.log(ctx);
-      const meta = chart.getDatasetMeta(1);
+      const meta = chart.getDatasetMeta(0);
       meta.data.forEach((element: { tooltipPosition: () => any; }, i:number) => {
-        console.log("meta", meta);
         const position = element.tooltipPosition();
-        const textWidth = ctx.measureText(`${sumArray[i]}`).width;
+        const textWidth = ctx.measureText(`${dataChart[0].data[i]}`).width;
         const x = position.x - textWidth / 2;
         const y = position.y - 10;
-        ctx.fillText(`${sumArray[i]}`, x, y);
+        ctx.fillText(`${dataChart[0].data[i]}`, x, y);
       });
     },
-  }];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }], [dataChart]);
 
+  useEffect(() => {
+    if (!dataChart) return;
+    const newData = {
+      labels,
+      datasets: [
+        {
+          label: dataChart[0].label,
+          data: dataChart[0].data,
+          backgroundColor: "#b22322",
+        },
+      ],
+    };
+    setData(newData);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataChart]);
   return (
     <div className="o-chartMortalityReport">
-      <Bar plugins={plugins} ref={ref} type="bar" data={dataChart} options={optionsChart} />
+      <Bar type="bar" plugins={plugins} data={data} options={optionsChart} />
     </div>
   );
 };
-
-export default ChartMortalityReport;
-
-
+export default ChartVaccine;
 
 
 import { Story, Meta } from "@storybook/react";
 import base from "paths.macro";
 import React from "react";
 
-import Container from "../Container";
-
-import ChartMortalityReport from ".";
+import ChartVaccine from ".";
 
 export default {
   title: `Components/${base.replace("/src/components/", "").replace(/\/$/, "")}`,
-  component: ChartMortalityReport,
+  component: ChartVaccine,
 } as Meta;
 
-const arbitraryStackKey = "stack1";
-const sumArray = [0, 0.02, 0.06, 0.04, 0.08, 0.04, 0.04, 0.04, 0.04, 0.06, 0.1];
-const data = {
-  labels: ["0", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"],
-  datasets: [
-    // These two will be in the same stack.
-    {
-      stack: arbitraryStackKey,
-      label: "Dead Rate",
-      data: [0, 0.02, 0.06, 0.04, 0.08, 0.04, 0.04, 0.04, 0.04, 0.06, 0.1],
-      backgroundColor: "#b22322",
-    },
-    {
-      stack: arbitraryStackKey,
-      label: "Culled Rate",
-      data: [0, 0.02, 0.07, 0.01, 0.03, 0.02, 0.04, 0.01, 0, 0.08, 0.02],
-      backgroundColor: "#cd950d",
-    },
-  ],
+const infoChart = {
+  labelY: "Lượng ăn vào (gram/con)",
+  labelX: "Ngày tuổi",
+  titleChart: "Báo cáo lượng thức ăn",
 };
+
+const labels = ["0", "vacciene 1", "vacciene 2", "vacciene 3", "5", "6", "7"];
+
+const ChartData = [{
+  label: "ti le",
+  data: [1, 2, 3, 4, 5, 6],
+}];
+
 export const normal: Story = () => (
-  <Container>
-    <ChartMortalityReport dataChart={data} sumArray={sumArray} />
-  </Container>
+  <ChartVaccine dataChart={ChartData} labels={labels} infoChart={infoChart} />
 );
