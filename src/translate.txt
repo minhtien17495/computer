@@ -1,141 +1,135 @@
-import { ChartData } from "chart.js";
-import React, { useEffect, useState, useMemo } from "react";
-import { Bar } from "react-chartjs-2";
-
-const styleText = (label?:string, minFontSize?:number, fontWeight?:number, ratio?:number) => ({
-  display: true,
-  text: label,
-  color: "#3e3e3e",
-  font(context: { chart: { width: any; } }) {
-    const { width } = context.chart;
-    // fontsize 16 => maxWidthChart = 1280 / 80
-    const size = Math.max(Math.round(width / (ratio || 80)), minFontSize || 10);
-    return {
-      size,
-      weight: fontWeight || 700,
-    };
-  },
-});
-
-type DataChartItem={
-  label:string,
-  data:Array<number>
+@mixin StyleColorButton(
+    $hasBorder,
+    $nameVariant,
+    $textColor,
+    $bgDefaultColor,
+    $bgHoverColor,
+    $borderColor
+) {
+    &-#{$nameVariant} {
+        background-color: $bgDefaultColor;
+        span {
+            color: $textColor;
+        }
+        &:disabled {
+            span {
+                color: $oxfordBlue;
+            }
+        }
+        &:hover {
+            background-color: $bgHoverColor;
+        }
+        &:focus {
+            box-shadow: 0 0 0 rem(3.5) $glitter;
+        }
+        @if $hasBorder {
+            border: 1px solid $borderColor;
+            &:disabled {
+                border-color: $pastelGray;
+            }
+        }
+    }
 }
 
-interface ChartVaccineProps{
-  labels?:Array<string>;
-  dataChart?: DataChartItem[];
-  infoChart?:{
-    labelY?:string;
-    labelX?:string;
-    titleChart?:string;
-  }
+@mixin StyleSizeButton(
+    $nameSize,
+    $fontSize,
+    $lineHeight,
+    $fontWeight,
+    $padding,
+    $fontSizeMobile,
+    $lineHeightMobile,
+    $paddingMobile
+) {
+    &-#{$nameSize} {
+        padding: rem($padding);
+        @include mobile-down {
+            padding: rem($paddingMobile);
+        }
+        span {
+            font-size: rem($fontSize);
+            line-height: rem($lineHeight);
+            font-weight: $fontWeight;
+            @include mobile-down {
+                font-size: rem($fontSizeMobile);
+                line-height: rem($lineHeightMobile);
+            }
+        }
+    }
+}
+.a-button {
+    $root: &;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border-radius: rem(4);
+    cursor: pointer;
+    border: none;
+    outline: none;
+    -webkit-appearance: none;
+    transition: 0.3s linear;
+
+    &-iconLeft {
+        flex-direction: row-reverse;
+
+        .a-button_icon {
+            margin-left: 0;
+            margin-right: rem(8);
+        }
+    }
+
+    &_icon {
+        margin-left: rem(8);
+    }
+
+    // primary
+    @include StyleColorButton(
+        false,
+        'primary',
+        $white,
+        $limerick,
+        $greenHover,
+        $darkMidnightBlue02
+    );
+
+    // secondary
+    @include StyleColorButton(
+        true,
+        'secondary',
+        $oxfordBlue,
+        $white,
+        $aliceBlue,
+        $darkMidnightBlue02
+    );
+
+    //Size md
+    @include StyleSizeButton('md', 18, 27, 500, 14.5, 17, 22, 11.5);
+
+    &:disabled {
+        pointer-events: none;
+        background-color: $pastelGray;
+    }
+
+    &-loading {
+        pointer-events: none;
+    }
 }
 
-const ChartVaccine: React.FC<ChartVaccineProps> = ({
-  labels,
-  dataChart,
-  infoChart,
-}) => {
-  const [data, setData] = useState<ChartData>();
-  const optionsChart = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: 1276 / 390,
-    plugins: {
-      legend: {
-        position: "bottom",
-        labels: styleText(),
-      },
-      title: {
-        ...styleText(infoChart?.titleChart, 14, 700, 45),
-        padding: {
-          bottom: 20,
-        },
-      },
-    },
-    scales: {
-      y: {
-        title: styleText(infoChart?.labelY),
-        ticks: styleText(undefined, 12, 500),
-      },
-      x: {
-        title: styleText(infoChart?.labelX),
-        ticks: styleText(undefined, 8, 500),
-      },
-    },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [dataChart]);
 
-  const plugins = useMemo(() => [{
-    afterDraw: (chart:any) => {
-      if (!dataChart) return;
-      if (!chart.config.data && chart.config.data.datasets.length <= 0) return;
-      const { ctx } = chart;
-      ctx.save();
-      ctx.fillStyle = "#3e3e3e";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.restore();
-      const meta = chart.getDatasetMeta(0);
-      meta.data.forEach((element: { tooltipPosition: () => any; }, i:number) => {
-        const position = element.tooltipPosition();
-        const textWidth = ctx.measureText(`${dataChart[0].data[i]}`).width;
-        const x = position.x - textWidth / 2;
-        const y = position.y - 10;
-        ctx.fillText(`${dataChart[0].data[i]}`, x, y);
-      });
-    },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }], [dataChart]);
+type Variant = "primary"|"secondary";
 
-  useEffect(() => {
-    if (!dataChart) return;
-    const newData = {
-      labels,
-      datasets: [
-        {
-          label: dataChart[0].label,
-          data: dataChart[0].data,
-          backgroundColor: "#b22322",
-        },
-      ],
-    };
-    setData(newData);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataChart]);
-  return (
-    <div className="o-chartMortalityReport">
-      <Bar type="bar" plugins={plugins} data={data} options={optionsChart} />
-    </div>
-  );
-};
-export default ChartVaccine;
+type Size = "lg"|"md"|"sm"|"xs";
 
+$greenHover: #88ab0c;
 
-import { Story, Meta } from "@storybook/react";
-import base from "paths.macro";
-import React from "react";
+60 fs18x27x500
+56 fs18x27x500  
+36 fs14x21x500
 
-import ChartVaccine from ".";
+outline 56 fs16x24x700
 
-export default {
-  title: `Components/${base.replace("/src/components/", "").replace(/\/$/, "")}`,
-  component: ChartVaccine,
-} as Meta;
-
-const infoChart = {
-  labelY: "Lượng ăn vào (gram/con)",
-  labelX: "Ngày tuổi",
-  titleChart: "Báo cáo lượng thức ăn",
-};
-
-const labels = ["0", "vacciene 1", "vacciene 2", "vacciene 3", "5", "6", "7"];
-
-const ChartData = [{
-  label: "ti le",
-  data: [1, 2, 3, 4, 5, 6],
-}];
-
-export const normal: Story = () => (
-  <ChartVaccine dataChart={ChartData} labels={labels} infoChart={infoChart} />
-);
+icon 40 fs16x24x500
+	46 fs16x24x500
+icon outline 46 fs16x24x500
