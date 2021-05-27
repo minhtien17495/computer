@@ -1,135 +1,187 @@
-@mixin StyleColorButton(
-    $hasBorder,
-    $nameVariant,
-    $textColor,
-    $bgDefaultColor,
-    $bgHoverColor,
-    $borderColor
-) {
-    &-#{$nameVariant} {
-        background-color: $bgDefaultColor;
-        span {
-            color: $textColor;
-        }
-        &:disabled {
-            span {
-                color: $oxfordBlue;
-            }
-        }
-        &:hover {
-            background-color: $bgHoverColor;
-        }
-        &:focus {
-            box-shadow: 0 0 0 rem(3.5) $glitter;
-        }
-        @if $hasBorder {
-            border: 1px solid $borderColor;
-            &:disabled {
-                border-color: $pastelGray;
-            }
-        }
-    }
+import React, { useState, useRef, useEffect, PropsWithChildren } from "react";
+import { FieldName, get, UseFormMethods } from "react-hook-form";
+
+import Icon, { IconName } from "components/atoms/Icon";
+import mapModifiers from "utils/functions";
+
+type ColorLabels = "davysGrey" | "default";
+
+interface InputFileProps {
+  id: string;
+  name: string;
+  maxSize?: number; // Mb
+  handleChange?: (data: any) => void;
+  iconName?: IconName;
+  colorLabel?: ColorLabels;
+  placeholder?: string;
+  resetFile?: boolean;
 }
 
-@mixin StyleSizeButton(
-    $nameSize,
-    $fontSize,
-    $lineHeight,
-    $fontWeight,
-    $padding,
-    $fontSizeMobile,
-    $lineHeightMobile,
-    $paddingMobile
-) {
-    &-#{$nameSize} {
-        padding: rem($padding);
-        @include mobile-down {
-            padding: rem($paddingMobile);
-        }
-        span {
-            font-size: rem($fontSize);
-            line-height: rem($lineHeight);
-            font-weight: $fontWeight;
-            @include mobile-down {
-                font-size: rem($fontSizeMobile);
-                line-height: rem($lineHeightMobile);
-            }
-        }
+const isMaxSize = (size: number, maxSize: number): boolean => size < 1024 * 1024 * maxSize;
+
+const InputFile: React.FC<InputFileProps> = ({
+  id,
+  name,
+  handleChange,
+  maxSize,
+  iconName,
+  colorLabel,
+}) => {
+  const [fileName, setFileName] = useState<string>("");
+  const inputEl = useRef<HTMLInputElement | null>(null);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (fileList && fileList?.length > 0) {
+      const { size, name: filename = "" } = fileList[0];
+      setFileName(filename);
+
+      if (!isMaxSize(size, maxSize || 0)) {
+        return (
+          handleChange
+          && handleChange({
+            [name]: {
+              status: false,
+              message: `Dung lượng vượt quá ${maxSize}MB`,
+              data: null,
+            },
+          })
+        );
+      }
+
+      return (
+        handleChange
+        && handleChange({
+          [name]: {
+            status: true,
+            message: "Tải tập tin thành công",
+            data: fileList[0],
+          },
+        })
+      );
     }
+
+    return {
+      [name]: {
+        status: false,
+        message: "Tải tập tin thất bại",
+        data: null,
+      },
+    };
+  };
+
+  const removeFile = () => {
+    setFileName("");
+    if (inputEl.current) inputEl.current.value = "";
+  };
+
+  return (
+    <div className="a-input-file">
+      <div className="a-input-file_upload">
+        <input
+          id={id}
+          name={name}
+          className="a-input-file_upload_file"
+          type="file"
+          onChange={onChange}
+          ref={inputEl}
+        />
+        <label
+          className={mapModifiers(
+            "a-input-file_upload_text",
+            colorLabel === "davysGrey" ? "davysGrey" : "",
+          )}
+          htmlFor={id}
+        >
+          <div className="a-input-file_icon">
+            <Icon iconName={iconName || "blueActtachment"} />
+          </div>
+          <span>{fileName === "" ? "Đính Kèm Tập Tin" : fileName}</span>
+        </label>
+        {fileName !== "" && <span className="a-input-file_upload_close" onClick={removeFile} />}
+      </div>
+    </div>
+  );
+};
+
+InputFile.defaultProps = {
+  maxSize: 2,
+  iconName: "blueActtachment",
+};
+
+export default InputFile;
+interface InputFileHookFormProps<T> extends InputFileProps{
+  method: UseFormMethods<T>;
+  name: FieldName<T>;
 }
-.a-button {
-    $root: &;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    border-radius: rem(4);
-    cursor: pointer;
-    border: none;
-    outline: none;
-    -webkit-appearance: none;
-    transition: 0.3s linear;
 
-    &-iconLeft {
-        flex-direction: row-reverse;
+export const InputFileHookForm = <T, >({
+  id,
+  name,
+  colorLabel,
+  iconName,
+  placeholder,
+  method,
+}:PropsWithChildren<InputFileHookFormProps<T>>) => {
+  const { register, errors, setValue, getValues } = method;
 
-        .a-button_icon {
-            margin-left: 0;
-            margin-right: rem(8);
-        }
+  const hasError: Record<string, string> = get(errors, `${name}`);
+  const [fileName, setFileName] = useState("");
+
+  const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (fileList && fileList.length > 0) {
+      setFileName(fileList[0].name);
     }
+  };
+  console.log(getValues(name));
+  const handleRemoveFile = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+    e.preventDefault();
+    setFileName("");
+    setValue(name, undefined);
+  };
 
-    &_icon {
-        margin-left: rem(8);
+  useEffect(() => {
+    if (method.formState.isSubmitSuccessful) {
+      setFileName("");
+      setValue(name, undefined);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [method.formState.isSubmitted]);
 
-    // primary
-    @include StyleColorButton(
-        false,
-        'primary',
-        $white,
-        $limerick,
-        $greenHover,
-        $darkMidnightBlue02
-    );
+  return (
+    <div className="a-input-file">
+      <div className="a-input-file_upload">
+        <input
+          id={id}
+          name={name}
+          className={mapModifiers("a-input-file_upload_file", hasError?.message ? ["error"] : [])}
+          type="file"
+          ref={register}
+          onChange={handleSelectFile}
+        />
 
-    // secondary
-    @include StyleColorButton(
-        true,
-        'secondary',
-        $oxfordBlue,
-        $white,
-        $aliceBlue,
-        $darkMidnightBlue02
-    );
+        <label
+          className={mapModifiers(
+            "a-input-file_upload_text",
+            colorLabel === "davysGrey" ? "davysGrey" : "",
+          )}
+          htmlFor={id}
+        >
+          <div className="a-input-file_icon">
+            <Icon iconName={iconName || "blueActtachment"} />
+          </div>
 
-    //Size md
-    @include StyleSizeButton('md', 18, 27, 500, 14.5, 17, 22, 11.5);
+          {fileName === "" ? <span>{placeholder}</span> : (
+            <>
+              <span>{fileName}</span>
+              <span className="a-input-file_upload_close" onClick={handleRemoveFile} />
+            </>
+          )}
+        </label>
+        {hasError?.message && <div className="a-input_error">{hasError.message}</div>}
+      </div>
+    </div>
 
-    &:disabled {
-        pointer-events: none;
-        background-color: $pastelGray;
-    }
-
-    &-loading {
-        pointer-events: none;
-    }
-}
-
-
-type Variant = "primary"|"secondary";
-
-type Size = "lg"|"md"|"sm"|"xs";
-
-$greenHover: #88ab0c;
-
-60 fs18x27x500
-56 fs18x27x500  
-36 fs14x21x500
-
-outline 56 fs16x24x700
-
-icon 40 fs16x24x500
-	46 fs16x24x500
-icon outline 46 fs16x24x500
+  );
+};
