@@ -1,187 +1,79 @@
-import React, { useState, useRef, useEffect, PropsWithChildren } from "react";
-import { FieldName, get, UseFormMethods } from "react-hook-form";
+import React, { forwardRef } from 'react';
+import mapModifiers from 'variables/functions';
+import './index.scss';
 
-import Icon, { IconName } from "components/atoms/Icon";
-import mapModifiers from "utils/functions";
+interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-type ColorLabels = "davysGrey" | "default";
-
-interface InputFileProps {
-  id: string;
-  name: string;
-  maxSize?: number; // Mb
-  handleChange?: (data: any) => void;
-  iconName?: IconName;
-  colorLabel?: ColorLabels;
-  placeholder?: string;
-  resetFile?: boolean;
-}
-
-const isMaxSize = (size: number, maxSize: number): boolean => size < 1024 * 1024 * maxSize;
-
-const InputFile: React.FC<InputFileProps> = ({
-  id,
-  name,
-  handleChange,
-  maxSize,
-  iconName,
-  colorLabel,
-}) => {
-  const [fileName, setFileName] = useState<string>("");
-  const inputEl = useRef<HTMLInputElement | null>(null);
-
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileList = e.target.files;
-    if (fileList && fileList?.length > 0) {
-      const { size, name: filename = "" } = fileList[0];
-      setFileName(filename);
-
-      if (!isMaxSize(size, maxSize || 0)) {
+const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
+    ({ children, ...props }, ref) => {
         return (
-          handleChange
-          && handleChange({
-            [name]: {
-              status: false,
-              message: `Dung lượng vượt quá ${maxSize}MB`,
-              data: null,
-            },
-          })
+            <div className={mapModifiers('a-checkbox')}>
+                <label className="a-checkbox_label">
+                    <input ref={ref} type="checkbox" {...props} />
+                    <span className="a-checkbox_checkMark" />
+                    {children}
+                </label>
+            </div>
         );
-      }
+    }
+);
 
-      return (
-        handleChange
-        && handleChange({
-          [name]: {
-            status: true,
-            message: "Tải tập tin thành công",
-            data: fileList[0],
-          },
-        })
-      );
+export default Checkbox;
+
+
+.a-checkbox {
+    $root: &;
+
+    &_label {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-height: 24px;
+        padding-left: 24px;
+        cursor: pointer;
+        &:hover {
+            #{$root}_checkMark {
+                border-color: #00833e;
+            }
+        }
     }
 
-    return {
-      [name]: {
-        status: false,
-        message: "Tải tập tin thất bại",
-        data: null,
-      },
-    };
-  };
+    input[type='checkbox'] {
+        top: 0;
+        left: 0;
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
 
-  const removeFile = () => {
-    setFileName("");
-    if (inputEl.current) inputEl.current.value = "";
-  };
+        &:checked + #{$root}_checkMark {
+            border-color: #00833e;
+            &::after {
+                display: block;
+            }
+        }
+    }
 
-  return (
-    <div className="a-input-file">
-      <div className="a-input-file_upload">
-        <input
-          id={id}
-          name={name}
-          className="a-input-file_upload_file"
-          type="file"
-          onChange={onChange}
-          ref={inputEl}
-        />
-        <label
-          className={mapModifiers(
-            "a-input-file_upload_text",
-            colorLabel === "davysGrey" ? "davysGrey" : "",
-          )}
-          htmlFor={id}
-        >
-          <div className="a-input-file_icon">
-            <Icon iconName={iconName || "blueActtachment"} />
-          </div>
-          <span>{fileName === "" ? "Đính Kèm Tập Tin" : fileName}</span>
-        </label>
-        {fileName !== "" && <span className="a-input-file_upload_close" onClick={removeFile} />}
-      </div>
-    </div>
-  );
-};
-
-InputFile.defaultProps = {
-  maxSize: 2,
-  iconName: "blueActtachment",
-};
-
-export default InputFile;
-interface InputFileHookFormProps<T> extends InputFileProps{
-  method: UseFormMethods<T>;
-  name: FieldName<T>;
+    &_checkMark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        border: 1px solid gray;
+        background-color: white;
+        &::after {
+            display: none;
+            position: absolute;
+            left: 10%;
+            top: 12%;
+            content: '';
+            width: 12px;
+            height: 4px;
+            border: 3px solid #00833e;
+            border-right-color: transparent;
+            border-top-color: transparent;
+            transform: rotate(-45deg) skew(-10deg);
+        }
+    }
 }
-
-export const InputFileHookForm = <T, >({
-  id,
-  name,
-  colorLabel,
-  iconName,
-  placeholder,
-  method,
-}:PropsWithChildren<InputFileHookFormProps<T>>) => {
-  const { register, errors, setValue, getValues } = method;
-
-  const hasError: Record<string, string> = get(errors, `${name}`);
-  const [fileName, setFileName] = useState("");
-
-  const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileList = e.target.files;
-    if (fileList && fileList.length > 0) {
-      setFileName(fileList[0].name);
-    }
-  };
-  console.log(getValues(name));
-  const handleRemoveFile = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-    e.preventDefault();
-    setFileName("");
-    setValue(name, undefined);
-  };
-
-  useEffect(() => {
-    if (method.formState.isSubmitSuccessful) {
-      setFileName("");
-      setValue(name, undefined);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [method.formState.isSubmitted]);
-
-  return (
-    <div className="a-input-file">
-      <div className="a-input-file_upload">
-        <input
-          id={id}
-          name={name}
-          className={mapModifiers("a-input-file_upload_file", hasError?.message ? ["error"] : [])}
-          type="file"
-          ref={register}
-          onChange={handleSelectFile}
-        />
-
-        <label
-          className={mapModifiers(
-            "a-input-file_upload_text",
-            colorLabel === "davysGrey" ? "davysGrey" : "",
-          )}
-          htmlFor={id}
-        >
-          <div className="a-input-file_icon">
-            <Icon iconName={iconName || "blueActtachment"} />
-          </div>
-
-          {fileName === "" ? <span>{placeholder}</span> : (
-            <>
-              <span>{fileName}</span>
-              <span className="a-input-file_upload_close" onClick={handleRemoveFile} />
-            </>
-          )}
-        </label>
-        {hasError?.message && <div className="a-input_error">{hasError.message}</div>}
-      </div>
-    </div>
-
-  );
-};
