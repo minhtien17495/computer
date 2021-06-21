@@ -1,28 +1,55 @@
- <MenuItem
-        arrow
-        child={
-            <>
-                <MenuItem isChild >
-                    Contact Child
-                </MenuItem>
-                <MenuItem 
-                    arrow
-                    isChild
-                    child={
-                        <>
-                            <MenuItem isChild>
-                                Child Small 
-                            </MenuItem>
-                            <MenuItem isChild>
-                                Child Small 2
-                            </MenuItem>
-                        </>
-                    }
-                >
-                    Contact Child 2
-                </MenuItem>
-            </>
-        }
-    >
-        Contact
-    </MenuItem>
+import React, { forwardRef } from 'react';
+import DatePicker, { ReactDatePickerProps } from 'react-datepicker';
+
+interface InputDatePickerProps
+    extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const InputDatePicker = forwardRef<HTMLInputElement, InputDatePickerProps>(
+    ({ ...props }, ref) => (
+        <div>
+            <span onClick={props.onClick}>icon</span>
+            <input
+                ref={ref}
+                {...props}
+                placeholder={props.value ? undefined : 'dd/MM/yyyy'}
+            />
+        </div>
+    )
+);
+
+interface InputPickerProps extends ReactDatePickerProps {}
+
+const InputPicker: React.FC<InputPickerProps> = ({ ...props }) => {
+    // const [startDate, setStartDate] = useState<Date | null | undefined>();
+    return (
+        <DatePicker
+            {...props}
+            // selected={startDate}
+            // onChange={(date) => setStartDate(date as Date | null | undefined)}
+            customInput={<InputDatePicker />}
+            dateFormat="dd/MM/yyyy"
+        />
+    );
+};
+
+export default InputPicker;
+
+
+const { handleSubmit, reset, setValue, control } = useForm();
+
+    return (
+        <form onSubmit={handleSubmit((data: any) => console.log(data))}>
+            <Controller
+                control={control}
+                name="ReactDatepicker"
+                render={({ field }) => (
+                    <InputPicker
+                        placeholderText="Select date"
+                        onChange={(e) => field.onChange(e)}
+                        selected={field.value}
+                    />
+                )}
+            />
+            <button type="submit">submit</button>
+        </form>
+    );
