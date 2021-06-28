@@ -1,105 +1,49 @@
-import React, { forwardRef } from 'react';
-import DatePicker, { ReactDatePickerProps } from 'react-datepicker';
-import getYear from "date-fns/getYear";
-import getMonth from "date-fns/getYear";
+import React from 'react';
+import './index.scss';
+import 'react-toastify/dist/ReactToastify.css';
+import {
+    ToastContainer,
+    toast,
+    ToastContentProps,
+    TypeOptions,
+} from 'react-toastify';
+interface MsgProps extends ToastContentProps {
+    title?: string;
+}
 
-
-
-interface InputDatePickerProps
-    extends React.InputHTMLAttributes<HTMLInputElement> {}
-
-const InputDatePicker = forwardRef<HTMLInputElement, InputDatePickerProps>(
-    ({ ...props }, ref) => (
-        <div>
-            <span onClick={props.onClick}>icon</span>
-            <input
-                ref={ref}
-                {...props}
-                placeholder={props.value ? undefined : 'dd/MM/yyyy'}
-            />
-        </div>
-    )
+const Msg: React.FC<MsgProps> = ({ title }) => (
+    <div>
+        <div>{title}</div>
+    </div>
 );
 
-const CustomHeader:ReactDatePickerProps['renderCustomHeader']=({
-    date,
-    changeYear,
-    changeMonth,
-    decreaseMonth,
-    increaseMonth,
-    prevMonthButtonDisabled,
-    nextMonthButtonDisabled,
-  })=>{
-    const range = (start:any, end:any) => {
-        return new Array(end - start).fill('').map((d, i) => i + start);
-    };
-    const years = range(1990, getYear(new Date()));
-    const months = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-    ];
-      return(
-    <div
-    style={{
-      margin: 10,
-      display: "flex",
-      justifyContent: "center",
-    }}
-  >
-    <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
-      {"<"}
-    </button>
-    <select
-      value={getYear(date)}
-      onChange={({ target: { value } }) => changeYear(Number(value))}
-    >
-      {years.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
+export const toastSuccess = (title?: string, type?: TypeOptions) => {
+    toast((props) => <Msg title={title} {...props} />, {
+        type: type || 'success',
+    });
+};
 
-    <select
-      value={months[getMonth(date)]}
-      onChange={({ target: { value } }) =>
-        changeMonth(months.indexOf(value))
-      }
-    >
-      {months.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
-
-    <button onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
-      {">"}
-    </button>
-  </div>
-)}
-
-interface InputPickerProps extends ReactDatePickerProps {}
-
-const InputPicker: React.FC<InputPickerProps> = ({ ...props }) => {
+const Toast: React.FC = () => {
     return (
-        <DatePicker
-            {...props}
-            customInput={<InputDatePicker />}
-            renderCustomHeader={CustomHeader}
+        <ToastContainer
+            position="top-center"
+            autoClose={1500}
+            hideProgressBar
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
         />
     );
 };
 
-export default InputPicker;
+export default Toast;
 
+.Toastify {
+    &__toast-container {
+        &--top-center {
+            top: 30% !important;
+        }
+    }
+}
